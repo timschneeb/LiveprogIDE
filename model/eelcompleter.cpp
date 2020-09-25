@@ -17,7 +17,7 @@ EELCompleter::EELCompleter(QObject *parent) :
     smodel = new QStandardItemModel();
     setModel(smodel);
 
-    Q_INIT_RESOURCE(resources);
+    Q_INIT_RESOURCE(editorresources);
     QFile fl(":/definitions/eelang.xml");
 
     if (!fl.open(QIODevice::ReadOnly))

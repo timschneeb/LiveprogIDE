@@ -15,7 +15,7 @@ EELHighlighter::EELHighlighter(QTextDocument* document) :
     m_commentStartPattern(QRegularExpression(R"(/\*)")),
     m_commentEndPattern  (QRegularExpression(R"(\*/)"))
 {
-    Q_INIT_RESOURCE(resources);
+    Q_INIT_RESOURCE(editorresources);
     QFile fl(":/definitions/eelang.xml");
 
     if (!fl.open(QIODevice::ReadOnly))
