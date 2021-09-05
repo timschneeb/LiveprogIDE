@@ -100,6 +100,9 @@ EELEditor::EELEditor(QWidget *parent)
         if (ok && !name.isEmpty())
             ui->outline->goToFunction(name);
     });
+
+    //TODO remove
+    openNewScript(":/definitions/demo.eel");
 }
 
 EELEditor::~EELEditor()

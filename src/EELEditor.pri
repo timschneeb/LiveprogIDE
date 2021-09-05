@@ -1,4 +1,4 @@
-include(QCodeEditor/QCodeEditor.pri)
+include(../3rdparty/QCodeEditor/QCodeEditor.pri)
 
 SOURCES += \
     $$PWD/eeleditor.cpp \

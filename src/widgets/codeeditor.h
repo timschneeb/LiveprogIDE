@@ -27,7 +27,7 @@ protected:
 private slots:
     void fireRefreshSignal();
 private:
-    CodeContainer* cont;
+    CodeContainer* cont = nullptr;
     QTimer* refreshTick;
     bool refreshSignalQueued = false;
     bool refreshCursorSignalQueued = false;

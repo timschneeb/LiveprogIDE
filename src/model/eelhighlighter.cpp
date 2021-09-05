@@ -11,7 +11,7 @@ EELHighlighter::EELHighlighter(QTextDocument* document) :
     QStyleSyntaxHighlighter(document),
     m_highlightRules     (),
     m_functionPattern    (QRegularExpression(R"((((?:procedure )|(?:function ))(\w+)))")),
-    m_defTypePattern     (QRegularExpression(R"(\b([_a-zA-Z][_a-zA-Z0-9]*)\s+[_a-zA-Z][_a-zA-Z0-9]*\s*[;=])")),
+    m_defTypePattern     (QRegularExpression(R"((\S+:)([\s\S]\N+))")),
     m_commentStartPattern(QRegularExpression(R"(/\*)")),
     m_commentEndPattern  (QRegularExpression(R"(\*/)"))
 {
@@ -142,30 +142,11 @@ void EELHighlighter::highlightBlock(const QString& text)
             setFormat(
                 match.capturedStart(),
                 match.capturedLength(),
-                syntaxStyle()->getFormat("Type")
-            );
-
-            setFormat(
-                match.capturedStart(2),
-                match.capturedLength(2),
                 syntaxStyle()->getFormat("Function")
             );
         }
     }
-    {
-        auto matchIterator = m_defTypePattern.globalMatch(text);
 
-        while (matchIterator.hasNext())
-        {
-            auto match = matchIterator.next();
-
-            setFormat(
-                match.capturedStart(1),
-                match.capturedLength(1),
-                syntaxStyle()->getFormat("Type")
-            );
-        }
-    }
 
     for (auto& rule : m_highlightRules)
     {
@@ -183,6 +164,27 @@ void EELHighlighter::highlightBlock(const QString& text)
         }
     }
 
+
+    {
+        auto matchIterator = m_defTypePattern.globalMatch(text);
+
+        while (matchIterator.hasNext())
+        {
+            auto match = matchIterator.next();
+
+            setFormat(
+                match.capturedStart(1),
+                match.capturedLength(1),
+                syntaxStyle()->getFormat("Type")
+            );
+
+            setFormat(
+                match.capturedStart(2),
+                match.capturedLength(2),
+                syntaxStyle()->getFormat("Field")
+            );
+        }
+    }
 
     setCurrentBlockState(0);
 
