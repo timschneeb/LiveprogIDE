@@ -86,9 +86,7 @@ QScrollArea#dockWidgetScrollArea {
 
 ads--CDockSplitter::handle {
 	background-color: palette(dark);
-	/* uncomment the following line if you would like to change the size of
-       the splitter handles */
-	/* height: 1px; */
+        height: 3px;
 }
 
 /* Focus related styling */

@@ -26,7 +26,7 @@ else {
 }
 
 
-LIBS += -L../3rdparty/Qt-Advanced-Docking-System/lib
-include(../3rdparty/Qt-Advanced-Docking-System/ads.pri)
-INCLUDEPATH += ../3rdparty/Qt-Advanced-Docking-System/src
-DEPENDPATH += ../3rdparty/Qt-Advanced-Docking-System/src
+LIBS += -L../3rdparty/docking-system/lib
+include(../3rdparty/docking-system/ads.pri)
+INCLUDEPATH += ../3rdparty/docking-system/src
+DEPENDPATH += ../3rdparty/docking-system/src

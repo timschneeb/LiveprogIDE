@@ -138,6 +138,7 @@ void CodeEditor::loadStyle(QString path)
         delete style;
         return;
     }
+
     setSyntaxStyle(style);
 }
 

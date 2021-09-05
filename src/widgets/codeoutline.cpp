@@ -3,6 +3,8 @@
 CodeOutline::CodeOutline(QWidget *parent)
     : QTreeWidget(parent)
 {
+    this->setHeaderHidden(true);
+
     twAnnotation = new QTreeWidgetItem(this);
     twAnnotation->setText(0,"Annotations");
     twAnnotation->setExpanded(true);

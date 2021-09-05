@@ -54,5 +54,7 @@
         <file>icons/ValueTypeFriend_16x.svg</file>
         <file>icons/FindNext_16x.svg</file>
         <file>icons/FindPrevious_16x.svg</file>
+        <file>fonts/CONSOLA.TTF</file>
+        <file>fonts/CONSOLAB.TTF</file>
     </qresource>
 </RCC>

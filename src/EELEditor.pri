@@ -9,6 +9,7 @@ SOURCES += \
     $$PWD/model/eelhighlighter.cpp \
     $$PWD/widgets/codeeditor.cpp \
     $$PWD/widgets/codeoutline.cpp \
+    $$PWD/widgets/consoleoutput.cpp \
     $$PWD/widgets/findreplaceform.cpp \
     $$PWD/widgets/projectview.cpp
 
@@ -25,6 +26,7 @@ HEADERS += \
     $$PWD/utils/templateextension.h \
     $$PWD/widgets/codeeditor.h \
     $$PWD/widgets/codeoutline.h \
+    $$PWD/widgets/consoleoutput.h \
     $$PWD/widgets/findreplaceform.h \
     $$PWD/widgets/projectview.h
 

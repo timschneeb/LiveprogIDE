@@ -2,6 +2,8 @@
 #include "ui_eeleditor.h"
 
 #include "widgets/findreplaceform.h"
+#include "widgets/projectview.h"
+#include "widgets/consoleoutput.h"
 
 #include <QFile>
 #include <QMap>
@@ -11,18 +13,83 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QInputDialog>
+#include <QVBoxLayout>
+#include <QDesktopServices>
+#include <QDateTime>
+
+#include <DockAreaTitleBar.h>
+#include <DockAreaTabBar.h>
+#include <FloatingDockContainer.h>
+#include <DockComponentsFactory.h>
+
+using namespace ads;
 
 EELEditor::EELEditor(QWidget *parent)
-    : QDialog(parent)
+    : QMainWindow(parent)
     , ui(new Ui::EELEditor)
 {
+    QFontDatabase::addApplicationFont(":/fonts/CONSOLA.ttf");
+    QFontDatabase::addApplicationFont(":/fonts/CONSOLAB.ttf");
+
     ui->setupUi(this);
     this->layout()->setMenuBar(ui->menuBar);
 
-    ui->findReplaceForm->setTextEdit(ui->codeEdit);
-    ui->findReplaceForm->hide();
-    connect(ui->findReplaceForm,&FindReplaceForm::closedPressed,[this]{
-        ui->findReplaceForm->hide();
+    CDockManager::setConfigFlag(CDockManager::OpaqueSplitterResize, true);
+    CDockManager::setConfigFlag(CDockManager::XmlCompressionEnabled, false);
+    CDockManager::setConfigFlag(CDockManager::FocusHighlighting, true);
+    DockManager = new CDockManager(this);
+
+    codeEdit = new CodeEditor(this);
+    findReplaceForm = new FindReplaceForm(this);
+    projectView = new ProjectView(this);
+    codeOutline = new CodeOutline(this);
+    consoleOutput = new ConsoleOutput(this);
+
+    codeWidget = new QWidget(this);
+    auto* codeLayout = new QVBoxLayout(codeWidget);
+    codeLayout->setContentsMargins(0, 0, 0, 0);
+    codeLayout->setMargin(0);
+    codeLayout->addWidget(codeEdit);
+    codeLayout->addWidget(findReplaceForm);
+
+    CDockWidget* CentralDockWidget = new CDockWidget("CentralWidget");
+    CentralDockWidget->setMinimumSize(0,0);
+    CentralDockWidget->setWidget(codeWidget);
+    auto* CentralDockArea = DockManager->setCentralWidget(CentralDockWidget);
+    CentralDockWidget->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromContent);
+    CentralDockArea->setAllowedAreas(DockWidgetArea::OuterDockAreas);
+
+
+    CDockWidget* projectsDock = new CDockWidget("Loaded projects");
+    projectsDock->setWidget(projectView);
+    projectsDock->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromDockWidget);
+    projectsDock->resize(250, 50);
+    projectsDock->setMinimumSize(200,50);
+    projectsDock->setGeometry(0,0,0,400);
+
+    auto* leftArea = DockManager->addDockWidget(DockWidgetArea::LeftDockWidgetArea, projectsDock);
+    ui->menuView->addAction(projectsDock->toggleViewAction());
+
+    projectsDock = new CDockWidget("Code outline");
+    projectsDock->setWidget(codeOutline);
+    projectsDock->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromDockWidget);
+    projectsDock->resize(250, 150);
+    projectsDock->setMinimumSize(200,150);
+    DockManager->addDockWidget(DockWidgetArea::BottomDockWidgetArea, projectsDock, leftArea);
+    ui->menuView->addAction(projectsDock->toggleViewAction());
+
+    auto* consoleDock = new CDockWidget("Console output");
+    consoleDock->setWidget(consoleOutput);
+    consoleDock->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromDockWidget);
+    consoleDock->resize(250, 150);
+    consoleDock->setMinimumSize(200,150);
+    DockManager->addDockWidget(DockWidgetArea::BottomDockWidgetArea, consoleDock);
+    ui->menuView->addAction(consoleDock->toggleViewAction());
+
+    findReplaceForm->setTextEdit(codeEdit);
+    findReplaceForm->hide();
+    connect(findReplaceForm,&FindReplaceForm::closedPressed,[this]{
+        findReplaceForm->hide();
     });
 
     completer = new EELCompleter();
@@ -30,12 +97,12 @@ EELEditor::EELEditor(QWidget *parent)
     symbolProvider = new CustomSymbolProvider();
 
     symbolProvider->setLanguageSpecs(completer,highlighter);
-    symbolProvider->setCodeEditorModule(ui->codeEdit);
-    symbolProvider->setCodeOutlineModule(ui->outline);
+    symbolProvider->setCodeEditorModule(codeEdit);
+    symbolProvider->setCodeOutlineModule(codeOutline);
     symbolProvider->connectSignals();
 
-    ui->codeEdit->setCompleter(completer);
-    ui->codeEdit->setHighlighter(highlighter);
+    codeEdit->setCompleter(completer);
+    codeEdit->setHighlighter(highlighter);
 
     connect(ui->actionOpen_file,&QAction::triggered,[this]{
         QString fileName = QFileDialog::getOpenFileName(this,
@@ -43,65 +110,69 @@ EELEditor::EELEditor(QWidget *parent)
         if(fileName.isEmpty())
             return;
 
-        ui->projectView->addFile(fileName);
+        projectView->addFile(fileName);
     });
     connect(ui->actionClose_filw,&QAction::triggered,[this]{
-        ui->projectView->closeCurrentFile();
+        projectView->closeCurrentFile();
     });
     connect(ui->actionSave,&QAction::triggered,[this]{
-        ui->projectView->getCurrentFile()->code = ui->codeEdit->toPlainText();
-        ui->projectView->getCurrentFile()->save();
-        emit scriptSaved(ui->projectView->getCurrentFile()->path);
+        projectView->getCurrentFile()->code = codeEdit->toPlainText();
+        projectView->getCurrentFile()->save();
+        emit scriptSaved(projectView->getCurrentFile()->path);
     });
-    connect(ui->projectView,&ProjectView::currentFileUpdated,[this](CodeContainer* prev, CodeContainer* code){
+    connect(projectView,&ProjectView::currentFileUpdated,[this](CodeContainer* prev, CodeContainer* code){
         if(code == nullptr)
-            ui->codeEdit->setText("//No code is loaded. Please create or open a file first.");
+            codeEdit->setText("//No code is loaded. Please create or open a file first.");
         else{
             if(prev != nullptr)
 
-            ui->codeEdit->loadCode(code);
+            codeEdit->loadCode(code);
         }
-        ui->codeEdit->setEnabled(code != nullptr);
+        codeEdit->setEnabled(code != nullptr);
     });
-
-    ui->codeEdit->loadStyle(":/definitions/drakula.xml");
 
     symbolProvider->reloadSymbols();
 
-    ui->splitter_main->setStretchFactor(0,1);
-    ui->splitter_main->setStretchFactor(1,2);
-    ui->splitter_sidebar->setStretchFactor(0,1);
-    ui->splitter_sidebar->setStretchFactor(1,3);
-
-    ui->codeEdit->setUndoRedoEnabled(true);
-    connect(ui->actionUndo,&QAction::triggered,ui->codeEdit,&QCodeEditor::undo);
-    connect(ui->actionRedo,&QAction::triggered,ui->codeEdit,&QCodeEditor::redo);
+    codeEdit->setUndoRedoEnabled(true);
+    connect(ui->actionUndo,&QAction::triggered,codeEdit,&QCodeEditor::undo);
+    connect(ui->actionRedo,&QAction::triggered,codeEdit,&QCodeEditor::redo);
     connect(ui->actionFind_Replace,&QAction::triggered,[this]{
-        ui->findReplaceForm->setVisible(!ui->findReplaceForm->isVisible());
+        findReplaceForm->setVisible(!findReplaceForm->isVisible());
     });
     connect(ui->actionGo_to_line,&QAction::triggered,[this]{
         bool ok;
         int line = QInputDialog::getInt(this, "Go to Line...",
-                             "Enter line number:", ui->codeEdit->getCurrentLine()
+                             "Enter line number:", codeEdit->getCurrentLine()
                                         ,1,2147483647,1,&ok);
         if (ok && line >= 0)
-            ui->codeEdit->goToLine(line);
+            codeEdit->goToLine(line);
     });
     connect(ui->actionGo_to_init,&QAction::triggered,[this]{
-        ui->outline->goToAnnotation("@init");
+        codeOutline->goToAnnotation("@init");
     });
     connect(ui->actionGo_to_sample,&QAction::triggered,[this]{
-        ui->outline->goToAnnotation("@sample");
+        codeOutline->goToAnnotation("@sample");
     });
     connect(ui->actionJump_to_function,&QAction::triggered,[this]{
         bool ok;
         QString name = QInputDialog::getText(this, "Jump to Function...",
                              "Enter function name:", QLineEdit::Normal, "", &ok);
         if (ok && !name.isEmpty())
-            ui->outline->goToFunction(name);
+            codeOutline->goToFunction(name);
+    });
+    connect(ui->actionEEL2_documentation, &QAction::triggered, []{
+        QDesktopServices::openUrl(QUrl("https://github.com/james34602/EEL_VM"));
     });
 
-    //TODO remove
+
+    QFont font;
+    font.setFamily("Consolas");
+    font.setPointSize(10);
+    codeEdit->setFont(font);
+
+    changeSyntaxStyle(":/definitions/drakula.xml");
+
+    // TODO remove
     openNewScript(":/definitions/demo.eel");
 }
 
@@ -111,5 +182,27 @@ EELEditor::~EELEditor()
 }
 
 void EELEditor::openNewScript(QString path){
-    ui->projectView->addFile(path);
+    projectView->addFile(path);
+}
+
+void EELEditor::changeSyntaxStyle(QString def)
+{
+    // Workaround to solve stylesheet conflicts
+    DockManager->setStyleSheet("");
+    codeEdit->loadStyle(def);
+
+    QString Result;
+    QString FileName = ":ads/stylesheets/";
+    FileName += CDockManager::testConfigFlag(CDockManager::FocusHighlighting)
+        ? "focus_highlighting" : "default";
+#ifdef Q_OS_LINUX
+    FileName += "_linux";
+#endif
+    FileName += ".css";
+    QFile StyleSheetFile(FileName);
+    StyleSheetFile.open(QIODevice::ReadOnly);
+    QTextStream StyleSheetStream(&StyleSheetFile);
+    Result = StyleSheetStream.readAll();
+    StyleSheetFile.close();
+    DockManager->setStyleSheet(Result);
 }
