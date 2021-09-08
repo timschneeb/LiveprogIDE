@@ -59,7 +59,7 @@
     <style name="LogChangeLine" foreground="#ff5555"/>
     <style name="Warning" underlineColor="#ffb86c" underlineStyle="SingleUnderline"/>
     <style name="WarningContext" underlineColor="#ffb86c" underlineStyle="DotLine"/>
-    <style name="Error" underlineColor="#ff5555" underlineStyle="SingleUnderline"/>
+    <style name="Error" foreground="#ff5555" underlineColor="#ff5555" underlineStyle="DotLine"/>
     <style name="ErrorContext" underlineColor="#ff5555" underlineStyle="DotLine"/>
     <style name="Declaration" bold="true"/>
     <style name="FunctionDefinition"/>

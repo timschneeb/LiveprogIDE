@@ -12,7 +12,6 @@
         <name>loop</name>
         <name>while</name>
         <name>this</name>
-        <name>return</name>
         <name>if</name>
         <name>else</name>
         <name>switch</name>
@@ -20,7 +19,6 @@
         <name>for</name>
         <name>in</name>
         <name>do</name>
-        <name>until</name>
         <name>break</name>
         <name>continue</name>
         <name>true</name>

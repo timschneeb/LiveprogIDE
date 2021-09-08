@@ -56,5 +56,19 @@
         <file>icons/FindPrevious_16x.svg</file>
         <file>fonts/CONSOLA.TTF</file>
         <file>fonts/CONSOLAB.TTF</file>
+        <file>icons/close.svg</file>
+        <file>icons/critical.svg</file>
+        <file>icons/FindInFile_16x.svg</file>
+        <file>icons/help.svg</file>
+        <file>icons/open_folder.svg</file>
+        <file>icons/redo.svg</file>
+        <file>icons/Run_16x.svg</file>
+        <file>icons/save.svg</file>
+        <file>icons/saveas.svg</file>
+        <file>icons/StatusRun_16x.svg</file>
+        <file>icons/StatusRunOutline_cyan_16x.svg</file>
+        <file>icons/success.svg</file>
+        <file>icons/undo.svg</file>
+        <file>icons/warning.svg</file>
     </qresource>
 </RCC>

@@ -121,6 +121,18 @@ QList<AnnotationDefinition> CodeEditor::findAnnotations(){
     return map;
 }
 
+int CodeEditor::findAnnotationLine(const QString& name){
+    AnnotationDefinition def;
+    for (auto annotation : this->findAnnotations())
+    {
+        if(annotation.name == name)
+        {
+            return annotation.line;
+        }
+    }
+    return -1;
+}
+
 void CodeEditor::loadCode(CodeContainer* code)
 {
     cont = code;

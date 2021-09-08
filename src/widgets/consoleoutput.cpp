@@ -2,6 +2,8 @@
 
 #include <QMenu>
 #include <QScrollBar>
+#include <QApplication>
+#include <QClipboard>
 
 ConsoleOutput::ConsoleOutput(QWidget* parent) : QTextBrowser(parent)
 {
@@ -21,9 +23,17 @@ ConsoleOutput::ConsoleOutput(QWidget* parent) : QTextBrowser(parent)
     autoScrollAction->setChecked(true);
     connect(autoScrollAction, &QAction::toggled, this, &ConsoleOutput::setAutoScroll);
     menu->addAction(autoScrollAction);
-    auto copyAction = new QAction("Copy contents", this);
+    auto copyAction = new QAction("Copy selection", this);
     connect(copyAction, &QAction::triggered, this, &ConsoleOutput::copy);
     menu->addAction(copyAction);
+    auto copyAllAction = new QAction("Copy all", this);
+    connect(copyAllAction, &QAction::triggered, this, [this]{
+        qApp->clipboard()->setText(this->toPlainText(), QClipboard::Clipboard);
+    });
+    menu->addAction(copyAllAction);
+    auto clearAction = new QAction("Clear", this);
+    connect(clearAction, &QAction::triggered, this, &ConsoleOutput::clear);
+    menu->addAction(clearAction);
 
 
     connect(this, &ConsoleOutput::customContextMenuRequested, [this](QPoint pos){
@@ -70,6 +80,11 @@ void ConsoleOutput::printHtml(QString text)
 void ConsoleOutput::printErrorLine(QString line)
 {
     printHtmlLine("<span style=\"font-weight: 700;color: #FF5050\">" + line + "</span>");
+}
+
+void ConsoleOutput::printLowPriorityLine(QString line)
+{
+    printHtmlLine("<span style=\"font-weight: 700;color: gray\">" + line + "</span>");
 }
 
 bool ConsoleOutput::getAutoScroll() const

@@ -33,6 +33,13 @@ public:
 signals:
     void scriptSaved(QString path);
 
+    void runCode(QString path);
+
+public slots:
+    void onCompilerStarted(const QString& scriptName);
+    void onCompilerFinished(int ret, const QString& retMsg, const QString& msg, const QString& scriptName, float initMs);
+    void onConsoleOutputReceived(const QString& buffer);
+
 private:
     Ui::EELEditor *ui;
 
@@ -48,10 +55,11 @@ private:
     EELHighlighter* highlighter;
     EELCompleter* completer;
 
+    bool ignoreErrorClearOnNextChangeEvent = false;
+
     ads::CDockManager* DockManager;
     ads::CDockAreaWidget* StatusDockArea;
     ads::CDockWidget* TimelineDockWidget;
-
 
     void changeSyntaxStyle(QString def);
 };

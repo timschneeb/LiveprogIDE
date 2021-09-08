@@ -19,6 +19,7 @@ public:
     bool getAutoScroll() const;
     void setAutoScroll(bool newAutoScroll);
 
+    void printLowPriorityLine(QString line);
 private:
     QMenu *menu;
     bool autoScroll = true;

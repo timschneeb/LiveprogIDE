@@ -11,7 +11,7 @@ EELHighlighter::EELHighlighter(QTextDocument* document) :
     QStyleSyntaxHighlighter(document),
     m_highlightRules     (),
     m_functionPattern    (QRegularExpression(R"((((?:procedure )|(?:function ))(\w+)))")),
-    m_defTypePattern     (QRegularExpression(R"((\S+:)([\s\S]\N+))")),
+    m_defTypePattern     (QRegularExpression(R"(^((?:[A-Za-z0-9])+:)([\s\S]\N+))")),
     m_commentStartPattern(QRegularExpression(R"(/\*)")),
     m_commentEndPattern  (QRegularExpression(R"(\*/)"))
 {
@@ -114,6 +114,26 @@ void EELHighlighter::loadCustomFunctionRules(QList<FunctionDefinition> funcDefs,
 
 void EELHighlighter::highlightBlock(const QString& text)
 {
+    {
+        auto matchIterator = m_defTypePattern.globalMatch(text);
+
+        while (matchIterator.hasNext())
+        {
+            auto match = matchIterator.next();
+
+            setFormat(
+                match.capturedStart(1),
+                match.capturedLength(1),
+                syntaxStyle()->getFormat("Type")
+            );
+
+            setFormat(
+                match.capturedStart(2),
+                match.capturedLength(2),
+                syntaxStyle()->getFormat("Field")
+            );
+        }
+    }
 
     for (auto& rule : m_customFunctionRules)
     {
@@ -164,28 +184,6 @@ void EELHighlighter::highlightBlock(const QString& text)
         }
     }
 
-
-    {
-        auto matchIterator = m_defTypePattern.globalMatch(text);
-
-        while (matchIterator.hasNext())
-        {
-            auto match = matchIterator.next();
-
-            setFormat(
-                match.capturedStart(1),
-                match.capturedLength(1),
-                syntaxStyle()->getFormat("Type")
-            );
-
-            setFormat(
-                match.capturedStart(2),
-                match.capturedLength(2),
-                syntaxStyle()->getFormat("Field")
-            );
-        }
-    }
-
     setCurrentBlockState(0);
 
     int startIndex = 0;
@@ -218,4 +216,24 @@ void EELHighlighter::highlightBlock(const QString& text)
         );
         startIndex = text.indexOf(m_commentStartPattern, startIndex + commentLength);
     }
+
+    // We expect one text block per line
+    if(currentBlock().firstLineNumber() == errorLine)
+    {
+        setFormat(
+            0,
+            currentBlock().length(),
+            syntaxStyle()->getFormat("Error")
+        );
+    }
+}
+
+int EELHighlighter::getErrorLine() const
+{
+    return errorLine;
+}
+
+void EELHighlighter::setErrorLine(int newErrorLine)
+{
+    errorLine = newErrorLine;
 }

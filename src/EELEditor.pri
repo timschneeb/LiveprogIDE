@@ -28,7 +28,8 @@ HEADERS += \
     $$PWD/widgets/codeoutline.h \
     $$PWD/widgets/consoleoutput.h \
     $$PWD/widgets/findreplaceform.h \
-    $$PWD/widgets/projectview.h
+    $$PWD/widgets/projectview.h \
+    $$PWD/widgets/proxystyle.h
 
 FORMS += \
     $$PWD/eeleditor.ui \

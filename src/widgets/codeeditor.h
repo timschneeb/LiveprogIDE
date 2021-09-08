@@ -19,6 +19,7 @@ public:
     void loadCode(CodeContainer *code);
     int getCurrentLine();
     QString textUnderCursor() const;
+    int findAnnotationLine(const QString &name);
 signals:
     void backendRefreshRequired();
     void cursorRefreshed();

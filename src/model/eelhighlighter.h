@@ -30,6 +30,9 @@ public:
      */
     explicit EELHighlighter(QTextDocument* document=nullptr);
     void loadCustomFunctionRules(QList<FunctionDefinition> funcDefs, bool append = false);
+    int getErrorLine() const;
+    void setErrorLine(int newErrorLine = -1);
+
 protected:
     void highlightBlock(const QString& text) override;
 
@@ -43,6 +46,8 @@ private:
 
     QRegularExpression m_commentStartPattern;
     QRegularExpression m_commentEndPattern;
+
+    int errorLine = -1;
 };
 
 

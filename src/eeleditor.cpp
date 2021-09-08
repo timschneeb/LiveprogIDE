@@ -4,6 +4,7 @@
 #include "widgets/findreplaceform.h"
 #include "widgets/projectview.h"
 #include "widgets/consoleoutput.h"
+#include "widgets/proxystyle.h"
 
 #include <QFile>
 #include <QMap>
@@ -16,6 +17,7 @@
 #include <QVBoxLayout>
 #include <QDesktopServices>
 #include <QDateTime>
+#include <QMessageBox>
 
 #include <DockAreaTitleBar.h>
 #include <DockAreaTabBar.h>
@@ -28,6 +30,8 @@ EELEditor::EELEditor(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::EELEditor)
 {
+    this->setStyle(new ProxyStyle("Fusion"));
+
     QFontDatabase::addApplicationFont(":/fonts/CONSOLA.ttf");
     QFontDatabase::addApplicationFont(":/fonts/CONSOLAB.ttf");
 
@@ -88,9 +92,7 @@ EELEditor::EELEditor(QWidget *parent)
 
     findReplaceForm->setTextEdit(codeEdit);
     findReplaceForm->hide();
-    connect(findReplaceForm,&FindReplaceForm::closedPressed,[this]{
-        findReplaceForm->hide();
-    });
+    connect(findReplaceForm, &FindReplaceForm::closedPressed, findReplaceForm, &FindReplaceForm::hide);
 
     completer = new EELCompleter();
     highlighter = new EELHighlighter();
@@ -103,6 +105,18 @@ EELEditor::EELEditor(QWidget *parent)
 
     codeEdit->setCompleter(completer);
     codeEdit->setHighlighter(highlighter);
+
+    // Remove error highlighting if contents changed
+    connect(codeEdit, &CodeEditor::backendRefreshRequired, [this]{
+        if(ignoreErrorClearOnNextChangeEvent)
+        {
+            ignoreErrorClearOnNextChangeEvent = false;
+            return;
+        }
+
+        highlighter->setErrorLine(-1);
+        highlighter->rehighlight();
+    });
 
     connect(ui->actionOpen_file,&QAction::triggered,[this]{
         QString fileName = QFileDialog::getOpenFileName(this,
@@ -120,6 +134,18 @@ EELEditor::EELEditor(QWidget *parent)
         projectView->getCurrentFile()->save();
         emit scriptSaved(projectView->getCurrentFile()->path);
     });
+    connect(ui->actionSave_as,&QAction::triggered,[this]{
+        QString path = projectView->getCurrentFile()->path;
+        path = QFileDialog::getSaveFileName(this, "Save as",
+                                                "", "EEL2 script (*.eel)");
+
+        if (path.isEmpty())
+            return;
+
+        projectView->getCurrentFile()->code = codeEdit->toPlainText();
+        projectView->getCurrentFile()->save(path);
+        emit scriptSaved(path);
+    });
     connect(projectView,&ProjectView::currentFileUpdated,[this](CodeContainer* prev, CodeContainer* code){
         if(code == nullptr)
             codeEdit->setText("//No code is loaded. Please create or open a file first.");
@@ -134,6 +160,11 @@ EELEditor::EELEditor(QWidget *parent)
     symbolProvider->reloadSymbols();
 
     codeEdit->setUndoRedoEnabled(true);
+
+    ui->actionUndo->setEnabled(false);
+    ui->actionRedo->setEnabled(false);
+    connect(codeEdit, &CodeEditor::undoAvailable, ui->actionUndo, &QAction::setEnabled);
+    connect(codeEdit, &CodeEditor::redoAvailable, ui->actionRedo, &QAction::setEnabled);
     connect(ui->actionUndo,&QAction::triggered,codeEdit,&QCodeEditor::undo);
     connect(ui->actionRedo,&QAction::triggered,codeEdit,&QCodeEditor::redo);
     connect(ui->actionFind_Replace,&QAction::triggered,[this]{
@@ -164,6 +195,22 @@ EELEditor::EELEditor(QWidget *parent)
         QDesktopServices::openUrl(QUrl("https://github.com/james34602/EEL_VM"));
     });
 
+    connect(ui->actionRun_code, &QAction::triggered, [this]{
+        CodeContainer* cc = projectView->getCurrentFile();
+        if(cc == nullptr)
+        {
+            QMessageBox::critical(this, "Cannot execute", "No script file opened. Please open one first and try again.");
+            return;
+        }
+
+        // Save
+        projectView->getCurrentFile()->code = codeEdit->toPlainText();
+        projectView->getCurrentFile()->save();
+        emit scriptSaved(projectView->getCurrentFile()->path);
+
+        emit runCode(projectView->getCurrentFile()->path);
+    });
+
 
     QFont font;
     font.setFamily("Consolas");
@@ -171,9 +218,6 @@ EELEditor::EELEditor(QWidget *parent)
     codeEdit->setFont(font);
 
     changeSyntaxStyle(":/definitions/drakula.xml");
-
-    // TODO remove
-    openNewScript(":/definitions/demo.eel");
 }
 
 EELEditor::~EELEditor()
@@ -183,6 +227,125 @@ EELEditor::~EELEditor()
 
 void EELEditor::openNewScript(QString path){
     projectView->addFile(path);
+}
+
+void EELEditor::onCompilerStarted(const QString &scriptName)
+{
+    Q_UNUSED(scriptName)
+    consoleOutput->clear();
+    consoleOutput->printLowPriorityLine(QString("'%1' started compiling at %2").arg(QFileInfo(scriptName).fileName()).arg(QDateTime::currentDateTime().toString("hh:mm:ss.zzz")));
+
+}
+
+void EELEditor::onCompilerFinished(int ret, const QString& retMsg, const QString& msg, const QString& scriptName, float initMs)
+{
+
+    int line = -1;
+
+    if(ret <= 0)
+    {
+        QString message = msg;
+
+        QRegularExpression linenumRe(R"(^(\d+):)");
+        auto matchIterator = linenumRe.globalMatch(msg);
+        if(matchIterator.hasNext()){
+            auto match = matchIterator.next();
+            bool ok;
+            line = match.captured(1).toInt(&ok);
+            if(!ok)
+            {
+                line = -1;
+            }
+
+            message = message.remove(0, match.capturedLength(0));
+        }
+
+        consoleOutput->clear();
+        consoleOutput->printErrorLine(QString("%1 in '%2'<br>").arg(retMsg).arg(QFileInfo(scriptName).fileName()));
+
+        auto findAnnotationLineExternal = [](const QString& path, const QString& name){
+            QRegularExpression function(R"((^|(?<=\n))(\@[^\s\W]*))");
+            int linenum = 1;
+
+            QFile inputFile(path);
+            if (inputFile.open(QIODevice::ReadOnly))
+            {
+               QTextStream in(&inputFile);
+               while (!in.atEnd())
+               {
+                  QString line = in.readLine();
+                  auto matchIterator = function.globalMatch(line);
+                  if(matchIterator.hasNext()){
+
+                      auto match = matchIterator.next();
+                      if(line == name)
+                      {
+                          return linenum;
+                      }
+                  }
+                  linenum++;
+               }
+               inputFile.close();
+            }
+
+            return -1;
+        };
+
+        int initLine = findAnnotationLineExternal(scriptName, "@init");
+        int sampleLine = findAnnotationLineExternal(scriptName,"@sample");
+        if(ret == -1) // error in @init
+        {
+            if(initLine >= 0)
+                line += initLine;
+            else
+                line = -1;
+        }
+        else if(ret == -3) // error in @sample
+        {
+            if(sampleLine >= 0)
+                line += sampleLine;
+            else
+                line = -1;
+        }
+
+        if(line >= 0)
+        {
+            consoleOutput->printErrorLine(QString("Line %1:%2").arg(line).arg(message));
+        }
+        else
+        {
+            consoleOutput->printErrorLine(msg);
+        }
+
+        consoleOutput->printLowPriorityLine(QString("<br>Compilation stopped at %2").arg(QDateTime::currentDateTime().toString("hh:mm:ss.zzz")));
+    }
+    else
+    {
+        consoleOutput->printLowPriorityLine(QString("Script initialization took %1ms").arg(initMs));
+    }
+
+    auto* cc = projectView->getCurrentFile();
+    if(cc == nullptr)
+    {
+        return;
+    }
+
+    // Ddon't highlight if different script is opened in editor
+    if(QFileInfo(scriptName) != QFileInfo(cc->path))
+        return;
+
+    if(line < 0)
+        highlighter->setErrorLine(-1);
+    else
+        highlighter->setErrorLine(line - 1);
+
+    ignoreErrorClearOnNextChangeEvent = true;
+    codeEdit->updateStyle();
+}
+
+void EELEditor::onConsoleOutputReceived(const QString &buffer)
+{
+    consoleOutput->print(buffer);
 }
 
 void EELEditor::changeSyntaxStyle(QString def)

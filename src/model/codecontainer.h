@@ -20,8 +20,11 @@ public:
             return;
         code = fl.readAll();
     }
-    void save(){
-        QFile file(path);
+    void save(QString cpath = ""){
+        if(cpath.isEmpty())
+            cpath = path;
+
+        QFile file(cpath);
         if(file.open(QIODevice::WriteOnly | QIODevice::Text))
         {
             QTextStream stream(&file);

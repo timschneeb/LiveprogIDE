@@ -25,8 +25,4 @@ else {
     TEMPLATE = lib
 }
 
-
-LIBS += -L../3rdparty/docking-system/lib
-include(../3rdparty/docking-system/ads.pri)
-INCLUDEPATH += ../3rdparty/docking-system/src
-DEPENDPATH += ../3rdparty/docking-system/src
+include($$PWD/EELEditor-Linker.pri)
