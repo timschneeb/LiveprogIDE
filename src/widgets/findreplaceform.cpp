@@ -108,7 +108,7 @@ void FindReplaceForm::showMessage(const QString &message) {
 
 void FindReplaceForm::find(bool next) {
     if (!textEdit)
-        return; // TODO: show some warning?
+        return;
 
     // backward search
     bool back = !next;
