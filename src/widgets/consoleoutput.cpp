@@ -11,6 +11,7 @@ ConsoleOutput::ConsoleOutput(QWidget* parent) : QTextBrowser(parent)
     this->setStyleSheet("QTextEdit { background: black; color: #dddddd; }");
     QFont font;
     font.setFamily("Consolas");
+    font.setStyleHint(QFont::Monospace);
     font.setPointSize(10);
     this->setFont(font);
     this->setContextMenuPolicy(Qt::CustomContextMenu);

@@ -218,6 +218,7 @@ EELEditor::EELEditor(QWidget *parent)
 
     QFont font;
     font.setFamily("Consolas");
+    font.setStyleHint(QFont::Monospace);
     font.setPointSize(10);
     codeEdit->setFont(font);
 
