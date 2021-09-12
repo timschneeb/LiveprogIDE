@@ -32,8 +32,14 @@ EELEditor::EELEditor(QWidget *parent)
 {
     this->setStyle(new ProxyStyle("Fusion"));
 
-    QFontDatabase::addApplicationFont(":/fonts/CONSOLA.ttf");
-    QFontDatabase::addApplicationFont(":/fonts/CONSOLAB.ttf");
+    int fontRet;
+    int fontRet2;
+    fontRet = QFontDatabase::addApplicationFont(":/fonts/CONSOLA.ttf");
+    fontRet2 = QFontDatabase::addApplicationFont(":/fonts/CONSOLAB.ttf");
+    if(fontRet < 0 && fontRet2 < 0)
+    {
+        loadFallbackFont = true;
+    }
 
     ui->setupUi(this);
     this->layout()->setMenuBar(ui->menuBar);
@@ -47,7 +53,7 @@ EELEditor::EELEditor(QWidget *parent)
     findReplaceForm = new FindReplaceForm(this);
     projectView = new ProjectView(this);
     codeOutline = new CodeOutline(this);
-    consoleOutput = new ConsoleOutput(this);
+    consoleOutput = new ConsoleOutput(loadFallbackFont, this);
 
     codeWidget = new QWidget(this);
     auto* codeLayout = new QVBoxLayout(codeWidget);
@@ -217,7 +223,12 @@ EELEditor::EELEditor(QWidget *parent)
 
 
     QFont font;
-    font.setFamily("Consolas");
+    if(loadFallbackFont){
+        font.setFamily("Hack");
+    }
+    else{
+        font.setFamily("Consolas");
+    }
     font.setStyleHint(QFont::Monospace);
     font.setPointSize(10);
     codeEdit->setFont(font);

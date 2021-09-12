@@ -5,13 +5,17 @@
 #include <QApplication>
 #include <QClipboard>
 
-ConsoleOutput::ConsoleOutput(QWidget* parent) : QTextBrowser(parent)
+ConsoleOutput::ConsoleOutput(bool loadFallbackFont, QWidget* parent) : QTextBrowser(parent)
 {
     this->setReadOnly(true);
     this->setStyleSheet("QTextEdit { background: black; color: #dddddd; }");
     QFont font;
-    font.setFamily("Consolas");
-    font.setStyleHint(QFont::Monospace);
+    if(loadFallbackFont){
+        font.setFamily("Hack");
+    }
+    else{
+        font.setFamily("Consolas");
+    }    font.setStyleHint(QFont::Monospace);
     font.setPointSize(10);
     this->setFont(font);
     this->setContextMenuPolicy(Qt::CustomContextMenu);

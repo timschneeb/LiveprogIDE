@@ -7,7 +7,7 @@ class ConsoleOutput : public QTextBrowser
 {
     Q_OBJECT
 public:
-    ConsoleOutput(QWidget* parent = nullptr);
+    ConsoleOutput(bool loadFallbackFont,QWidget* parent = nullptr);
     void printLine(QString line);
     void print(QString text);
 

@@ -43,6 +43,7 @@ public slots:
 private:
     Ui::EELEditor *ui;
 
+    bool loadFallbackFont = false;
     CodeEditor* codeEdit;
     FindReplaceForm* findReplaceForm;
     QWidget* codeWidget;
