@@ -352,9 +352,10 @@ void EELEditor::newProject()
                   "spl0 = spl0;\n"
                   "spl1 = spl1;\n";
         file.close();
+
+        projectView->addFile(newFileWiz->filePath());
     }
 
-    projectView->addFile(newFileWiz->filePath());
     newFileWiz->deleteLater();
 }
 
