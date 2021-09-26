@@ -170,6 +170,11 @@ void FindReplaceForm::replaceAll() {
     showMessage(tr("Replaced %1 occurrence(s)").arg(i));
 }
 
+void FindReplaceForm::toggle()
+{
+    setVisible(!isVisible());
+}
+
 void FindReplaceForm::writeSettings(QSettings &settings, const QString &prefix) {
     settings.beginGroup(prefix);
     settings.setValue(TEXT_TO_FIND, ui->textToFind->text());

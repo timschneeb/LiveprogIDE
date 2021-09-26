@@ -70,5 +70,6 @@
         <file>icons/success.svg</file>
         <file>icons/undo.svg</file>
         <file>icons/warning.svg</file>
+        <file>icons/NewFile_16x.svg</file>
     </qresource>
 </RCC>

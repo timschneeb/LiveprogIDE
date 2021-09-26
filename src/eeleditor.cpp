@@ -1,10 +1,12 @@
 #include "eeleditor.h"
 #include "ui_eeleditor.h"
 
+#include "utils/FontUtils.h"
 #include "widgets/findreplaceform.h"
 #include "widgets/projectview.h"
 #include "widgets/consoleoutput.h"
 #include "widgets/proxystyle.h"
+#include "widgets/dialog/newfilewizard.h"
 
 #include <QFile>
 #include <QMap>
@@ -18,11 +20,17 @@
 #include <QDesktopServices>
 #include <QDateTime>
 #include <QMessageBox>
+#include <QStackedWidget>
+#include <QLabel>
+#include <QPushButton>
 
 #include <DockAreaTitleBar.h>
 #include <DockAreaTabBar.h>
 #include <FloatingDockContainer.h>
 #include <DockComponentsFactory.h>
+
+#include <widgets/ActionButton.h>
+#include <widgets/EmptyView.h>
 
 using namespace ads;
 
@@ -32,22 +40,8 @@ EELEditor::EELEditor(QWidget *parent)
 {
     this->setStyle(new ProxyStyle("Fusion"));
 
-    int fontRet;
-    int fontRet2;
-    fontRet = QFontDatabase::addApplicationFont(":/fonts/CONSOLA.ttf");
-    fontRet2 = QFontDatabase::addApplicationFont(":/fonts/CONSOLAB.ttf");
-    if(fontRet < 0 && fontRet2 < 0)
-    {
-        loadFallbackFont = true;
-    }
-
     ui->setupUi(this);
     this->layout()->setMenuBar(ui->menuBar);
-
-    CDockManager::setConfigFlag(CDockManager::OpaqueSplitterResize, true);
-    CDockManager::setConfigFlag(CDockManager::XmlCompressionEnabled, false);
-    CDockManager::setConfigFlag(CDockManager::FocusHighlighting, true);
-    DockManager = new CDockManager(this);
 
     codeEdit = new CodeEditor(this);
     findReplaceForm = new FindReplaceForm(this);
@@ -55,6 +49,10 @@ EELEditor::EELEditor(QWidget *parent)
     codeOutline = new CodeOutline(this);
     consoleOutput = new ConsoleOutput(loadFallbackFont, this);
 
+    codeView = new QStackedWidget(this);
+
+    emptyView = new EmptyView(QList<QAction*>(std::initializer_list<QAction*>(
+                                                  {ui->actionNew, ui->actionOpen_file})), this);
     codeWidget = new QWidget(this);
     auto* codeLayout = new QVBoxLayout(codeWidget);
     codeLayout->setContentsMargins(0, 0, 0, 0);
@@ -62,13 +60,20 @@ EELEditor::EELEditor(QWidget *parent)
     codeLayout->addWidget(codeEdit);
     codeLayout->addWidget(findReplaceForm);
 
+    codeView->addWidget(codeWidget);
+    codeView->addWidget(emptyView);
+
+    CDockManager::setConfigFlag(CDockManager::OpaqueSplitterResize, true);
+    CDockManager::setConfigFlag(CDockManager::XmlCompressionEnabled, false);
+    CDockManager::setConfigFlag(CDockManager::FocusHighlighting, true);
+    DockManager = new CDockManager(this);
+
     CDockWidget* CentralDockWidget = new CDockWidget("CentralWidget");
     CentralDockWidget->setMinimumSize(0,0);
-    CentralDockWidget->setWidget(codeWidget);
+    CentralDockWidget->setWidget(codeView);
     auto* CentralDockArea = DockManager->setCentralWidget(CentralDockWidget);
     CentralDockWidget->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromContent);
     CentralDockArea->setAllowedAreas(DockWidgetArea::OuterDockAreas);
-
 
     CDockWidget* projectsDock = new CDockWidget("Loaded projects");
     projectsDock->setWidget(projectView);
@@ -98,7 +103,6 @@ EELEditor::EELEditor(QWidget *parent)
 
     findReplaceForm->setTextEdit(codeEdit);
     findReplaceForm->hide();
-    connect(findReplaceForm, &FindReplaceForm::closedPressed, findReplaceForm, &FindReplaceForm::hide);
 
     completer = new EELCompleter();
     highlighter = new EELHighlighter();
@@ -109,131 +113,46 @@ EELEditor::EELEditor(QWidget *parent)
     symbolProvider->setCodeOutlineModule(codeOutline);
     symbolProvider->connectSignals();
 
+    codeEdit->setFont(FontUtils::preferredMonospaceFont());
     codeEdit->setCompleter(completer);
     codeEdit->setHighlighter(highlighter);
-
-    // Remove error highlighting if contents changed
-    connect(codeEdit, &CodeEditor::backendRefreshRequired, [this]{
-        if(ignoreErrorClearOnNextChangeEvent)
-        {
-            ignoreErrorClearOnNextChangeEvent = false;
-            return;
-        }
-
-        highlighter->setErrorLine(-1);
-        highlighter->rehighlight();
-    });
-
-    connect(ui->actionOpen_file,&QAction::triggered,[this]{
-        QString fileName = QFileDialog::getOpenFileName(this,
-                                                        tr("Open EEL script"), "", tr("EEL Script (*.eel)"));
-        if(fileName.isEmpty())
-            return;
-
-        projectView->addFile(fileName);
-    });
-    connect(ui->actionClose_filw,&QAction::triggered,[this]{
-        projectView->closeCurrentFile();
-    });
-    connect(ui->actionSave,&QAction::triggered,[this]{
-        projectView->getCurrentFile()->code = codeEdit->toPlainText();
-        projectView->getCurrentFile()->save();
-        emit scriptSaved(projectView->getCurrentFile()->path);
-    });
-    connect(ui->actionSave_as,&QAction::triggered,[this]{
-        QString path = projectView->getCurrentFile()->path;
-        path = QFileDialog::getSaveFileName(this, "Save as",
-                                                "", "EEL2 script (*.eel)");
-
-        if (path.isEmpty())
-            return;
-
-        projectView->getCurrentFile()->code = codeEdit->toPlainText();
-        projectView->getCurrentFile()->save(path);
-        emit scriptSaved(path);
-    });
-    connect(projectView,&ProjectView::currentFileUpdated,[this](CodeContainer* prev, CodeContainer* code){
-        ui->actionSave->setEnabled(code != nullptr);
-        ui->actionSave_as->setEnabled(code != nullptr);
-        ui->actionClose_filw->setEnabled(code != nullptr);
-        ui->actionRun_code->setEnabled(code != nullptr);
-
-        if(code == nullptr){
-            codeEdit->setText("//No code is loaded. Please create or open a file first.");
-        }
-        else{
-            codeEdit->loadCode(code);
-        }
-        codeEdit->setEnabled(code != nullptr);
-    });
+    codeEdit->setUndoRedoEnabled(true);
+    changeSyntaxStyle(":/definitions/drakula.xml");
 
     symbolProvider->reloadSymbols();
 
-    codeEdit->setUndoRedoEnabled(true);
-
+    onIsCodeLoadedChanged(false);
     ui->actionUndo->setEnabled(false);
     ui->actionRedo->setEnabled(false);
+
     connect(codeEdit, &CodeEditor::undoAvailable, ui->actionUndo, &QAction::setEnabled);
     connect(codeEdit, &CodeEditor::redoAvailable, ui->actionRedo, &QAction::setEnabled);
-    connect(ui->actionUndo,&QAction::triggered,codeEdit,&QCodeEditor::undo);
-    connect(ui->actionRedo,&QAction::triggered,codeEdit,&QCodeEditor::redo);
-    connect(ui->actionFind_Replace,&QAction::triggered,[this]{
-        findReplaceForm->setVisible(!findReplaceForm->isVisible());
-    });
-    connect(ui->actionGo_to_line,&QAction::triggered,[this]{
-        bool ok;
-        int line = QInputDialog::getInt(this, "Go to Line...",
-                             "Enter line number:", codeEdit->getCurrentLine()
-                                        ,1,2147483647,1,&ok);
-        if (ok && line >= 0)
-            codeEdit->goToLine(line);
-    });
-    connect(ui->actionGo_to_init,&QAction::triggered,[this]{
+    connect(codeEdit, &CodeEditor::backendRefreshRequired, this, &EELEditor::onBackendRefreshRequired);
+
+    connect(findReplaceForm, &FindReplaceForm::closedPressed, findReplaceForm, &FindReplaceForm::hide);
+
+    connect(projectView,&ProjectView::currentFileUpdated, this, &EELEditor::onCurrentFileUpdated);
+
+    connect(ui->actionRun_code, &QAction::triggered, this, &EELEditor::runCode);
+    connect(ui->actionNew, &QAction::triggered,this, &EELEditor::newProject);
+    connect(ui->actionOpen_file, &QAction::triggered, this, &EELEditor::openProject);
+    connect(ui->actionClose_filw, &QAction::triggered, projectView, &ProjectView::closeCurrentFile);
+    connect(ui->actionSave, &QAction::triggered, this, &EELEditor::saveProject);
+    connect(ui->actionSave_as, &QAction::triggered, this, &EELEditor::saveProjectAs);
+    connect(ui->actionUndo, &QAction::triggered,codeEdit, &QCodeEditor::undo);
+    connect(ui->actionRedo, &QAction::triggered,codeEdit, &QCodeEditor::redo);
+    connect(ui->actionFind_Replace, &QAction::triggered, findReplaceForm, &FindReplaceForm::toggle);
+    connect(ui->actionGo_to_line, &QAction::triggered, this, &EELEditor::goToLine);
+    connect(ui->actionJump_to_function, &QAction::triggered, this, &EELEditor::jumpToFunction);
+    connect(ui->actionGo_to_init, &QAction::triggered, [this]{
         codeOutline->goToAnnotation("@init");
     });
-    connect(ui->actionGo_to_sample,&QAction::triggered,[this]{
+    connect(ui->actionGo_to_sample, &QAction::triggered, [this]{
         codeOutline->goToAnnotation("@sample");
-    });
-    connect(ui->actionJump_to_function,&QAction::triggered,[this]{
-        bool ok;
-        QString name = QInputDialog::getText(this, "Jump to Function...",
-                             "Enter function name:", QLineEdit::Normal, "", &ok);
-        if (ok && !name.isEmpty())
-            codeOutline->goToFunction(name);
     });
     connect(ui->actionEEL2_documentation, &QAction::triggered, []{
         QDesktopServices::openUrl(QUrl("https://github.com/james34602/EEL_VM"));
     });
-
-    connect(ui->actionRun_code, &QAction::triggered, [this]{
-        CodeContainer* cc = projectView->getCurrentFile();
-        if(cc == nullptr)
-        {
-            QMessageBox::critical(this, "Cannot execute", "No script file opened. Please open one first and try again.");
-            return;
-        }
-
-        // Save
-        projectView->getCurrentFile()->code = codeEdit->toPlainText();
-        projectView->getCurrentFile()->save();
-        emit scriptSaved(projectView->getCurrentFile()->path);
-
-        emit runCode(projectView->getCurrentFile()->path);
-    });
-
-
-    QFont font;
-    if(loadFallbackFont){
-        font.setFamily("Hack");
-    }
-    else{
-        font.setFamily("Consolas");
-    }
-    font.setStyleHint(QFont::Monospace);
-    font.setPointSize(10);
-    codeEdit->setFont(font);
-
-    changeSyntaxStyle(":/definitions/drakula.xml");
 }
 
 EELEditor::~EELEditor()
@@ -250,7 +169,6 @@ void EELEditor::onCompilerStarted(const QString &scriptName)
     Q_UNUSED(scriptName)
     consoleOutput->clear();
     consoleOutput->printLowPriorityLine(QString("'%1' started compiling at %2").arg(QFileInfo(scriptName).fileName()).arg(QDateTime::currentDateTime().toString("hh:mm:ss.zzz")));
-
 }
 
 void EELEditor::onCompilerFinished(int ret, const QString& retMsg, const QString& msg, const QString& scriptName, float initMs)
@@ -362,6 +280,150 @@ void EELEditor::onCompilerFinished(int ret, const QString& retMsg, const QString
 void EELEditor::onConsoleOutputReceived(const QString &buffer)
 {
     consoleOutput->print(buffer);
+}
+
+void EELEditor::onCurrentFileUpdated(CodeContainer *prev, CodeContainer *code)
+{
+    Q_UNUSED(prev)
+
+    if(code != nullptr)
+    {
+        codeEdit->loadCode(code);
+    }
+
+    onIsCodeLoadedChanged(code != nullptr);
+}
+
+void EELEditor::onBackendRefreshRequired()
+{
+    if(ignoreErrorClearOnNextChangeEvent)
+    {
+        ignoreErrorClearOnNextChangeEvent = false;
+        return;
+    }
+
+    highlighter->setErrorLine(-1);
+    highlighter->rehighlight();
+}
+
+void EELEditor::onIsCodeLoadedChanged(bool isLoaded)
+{
+    ui->actionSave->setEnabled(isLoaded);
+    ui->actionSave_as->setEnabled(isLoaded);
+    ui->actionClose_filw->setEnabled(isLoaded);
+    ui->actionRun_code->setEnabled(isLoaded);
+    ui->actionFind_Replace->setEnabled(isLoaded);
+    ui->actionGo_to_init->setEnabled(isLoaded);
+    ui->actionGo_to_sample->setEnabled(isLoaded);
+    ui->actionGo_to_line->setEnabled(isLoaded);
+    ui->actionJump_to_function->setEnabled(isLoaded);
+    codeEdit->setEnabled(isLoaded);
+
+    codeView->setCurrentIndex(isLoaded ? 0 : 1);
+}
+
+void EELEditor::newProject()
+{
+    auto* newFileWiz = new NewFileWizard(this);
+
+    if(newFileWiz->exec())
+    {
+        QFile file(newFileWiz->filePath());
+        file.open(QIODevice::WriteOnly);
+
+        if(!file.isOpen())
+        {
+            QMessageBox::critical(this, "IO error", "Cannot write file");
+            return;
+        }
+
+        QString desc = newFileWiz->description();
+        QTextStream stream(&file);
+        if(!desc.isEmpty())
+        {
+            stream << "desc: " << desc << "\n";
+        }
+        stream << "\n";
+        stream << "@init\n"
+                  "// Prepare variables here\n"
+                  "\n";
+        stream << "@sample\n"
+                  "// Access and modify audio samples here\n"
+                  "spl0 = spl0;\n"
+                  "spl1 = spl1;\n";
+        file.close();
+    }
+
+    projectView->addFile(newFileWiz->filePath());
+    newFileWiz->deleteLater();
+}
+
+void EELEditor::openProject()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open EEL script"), "", tr("EEL2 Script (*.eel)"));
+
+    if(fileName.isEmpty())
+    {
+        return;
+    }
+    projectView->addFile(fileName);
+}
+
+void EELEditor::saveProject()
+{
+    projectView->getCurrentFile()->code = codeEdit->toPlainText();
+    projectView->getCurrentFile()->save();
+    emit scriptSaved(projectView->getCurrentFile()->path);
+}
+
+void EELEditor::saveProjectAs()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, "Save as",
+                                        projectView->getCurrentFile()->path, "EEL2 script (*.eel)");
+
+    if (fileName.isEmpty())
+    {
+        return;
+    }
+
+    projectView->getCurrentFile()->code = codeEdit->toPlainText();
+    projectView->getCurrentFile()->save(fileName);
+    emit scriptSaved(fileName);
+}
+
+void EELEditor::runCode()
+{
+    CodeContainer* cc = projectView->getCurrentFile();
+    if(cc == nullptr)
+    {
+        QMessageBox::critical(this, "Cannot execute", "No script file opened. Please open one first and try again.");
+        return;
+    }
+
+    saveProject();
+    emit executionRequested(projectView->getCurrentFile()->path);
+}
+
+void EELEditor::goToLine()
+{
+    bool ok = true;
+    int line = QInputDialog::getInt(this, "Go to line...",
+                         "Enter line number:", codeEdit->getCurrentLine(), 1, 2147483647, 1, &ok);
+    if (ok && line >= 0)
+    {
+        codeEdit->goToLine(line);
+    }
+}
+
+void EELEditor::jumpToFunction()
+{
+    bool ok = true;
+    QString name = QInputDialog::getText(this, "Jump to function...",
+                             "Enter function name:", QLineEdit::Normal, "", &ok);
+    if (ok && !name.isEmpty())
+    {
+        codeOutline->goToFunction(name);
+    }
 }
 
 void EELEditor::changeSyntaxStyle(QString def)

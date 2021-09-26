@@ -201,7 +201,7 @@
         <name>$DBL_MAX</name>
         <name>srate</name>
         <name>spl0</name>
-        <name>spl0</name>
+        <name>spl1</name>
     </section>
     <section name="PrimitiveType">
     </section>

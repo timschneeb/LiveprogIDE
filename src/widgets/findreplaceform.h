@@ -102,6 +102,8 @@ public slots:
       */
     void replaceAll();
 
+    void toggle();
+
 protected:
     void changeEvent(QEvent *e);
 

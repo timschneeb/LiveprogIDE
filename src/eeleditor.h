@@ -16,6 +16,8 @@
 class ProjectView;
 class FindReplaceForm;
 class ConsoleOutput;
+class QStackedWidget;
+class EmptyView;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class EELEditor; }
@@ -32,21 +34,37 @@ public:
 
 signals:
     void scriptSaved(QString path);
-
-    void runCode(QString path);
+    void executionRequested(QString path);
 
 public slots:
     void onCompilerStarted(const QString& scriptName);
     void onCompilerFinished(int ret, const QString& retMsg, const QString& msg, const QString& scriptName, float initMs);
     void onConsoleOutputReceived(const QString& buffer);
 
+    void newProject();
+    void openProject();
+    void saveProject();
+    void saveProjectAs();
+    void runCode();
+
+    void goToLine();
+    void jumpToFunction();
+
+private slots:
+    void onIsCodeLoadedChanged(bool isLoaded);
+    void onCurrentFileUpdated(CodeContainer* prev, CodeContainer* code);
+    void onBackendRefreshRequired();
+
 private:
     Ui::EELEditor *ui;
 
     bool loadFallbackFont = false;
+
+    QStackedWidget* codeView;
     CodeEditor* codeEdit;
-    FindReplaceForm* findReplaceForm;
     QWidget* codeWidget;
+    EmptyView* emptyView;
+    FindReplaceForm* findReplaceForm;
 
     ProjectView* projectView;
     CodeOutline* codeOutline;

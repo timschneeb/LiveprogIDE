@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>803</width>
-     <height>22</height>
+     <height>20</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -30,6 +30,7 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionNew"/>
     <addaction name="actionOpen_file"/>
     <addaction name="actionSave"/>
     <addaction name="actionSave_as"/>
@@ -104,6 +105,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionNew"/>
    <addaction name="actionOpen_file"/>
    <addaction name="actionSave"/>
    <addaction name="actionSave_as"/>
@@ -274,6 +276,21 @@
    </property>
    <property name="shortcut">
     <string>F5</string>
+   </property>
+  </action>
+  <action name="actionNew">
+   <property name="icon">
+    <iconset resource="editorresources.qrc">
+     <normaloff>:/icons/NewFile_16x.svg</normaloff>:/icons/NewFile_16x.svg</iconset>
+   </property>
+   <property name="text">
+    <string>New</string>
+   </property>
+   <property name="toolTip">
+    <string>New script wizard</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
    </property>
   </action>
  </widget>
