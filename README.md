@@ -1,5 +1,5 @@
-# EELEditor
-Basic embeddable EEL IDE (JamesDSP for Linux)
+# LiveprogIDE
+Basic embeddable Liveprog IDE, currently supports EELang2 (JamesDSP for Linux)
 
 Designed to be used as a plugin in a QMake subdirs project.
 
