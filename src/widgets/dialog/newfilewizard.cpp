@@ -12,7 +12,12 @@ NewFileWizard::NewFileWizard(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    // TODO
+#ifdef Q_OS_LINUX
+    ui->directory->setText(QDir::homePath() + "/.config/jamesdsp/liveprog");
+#else
     ui->directory->setText(QDir::homePath());
+#endif
 
     connect(ui->directorySelect, &QAbstractButton::clicked, [this]{
         QString dir = QFileDialog::getExistingDirectory(this, tr("Select directory"), ui->directory->text());
