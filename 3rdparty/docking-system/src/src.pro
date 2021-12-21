@@ -7,6 +7,7 @@ TEMPLATE = lib
 DESTDIR = $${ADS_OUT_ROOT}/lib
 QT += core gui widgets
 
+CONFIG += warn_off # Disable warnings for library
 
 CONFIG += staticlib
 DEFINES += ADS_STATIC
