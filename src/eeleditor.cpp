@@ -169,6 +169,14 @@ void EELEditor::attachHost(IAudioService *_host)
 {
     host = _host;
 
+    connect(host, &IAudioService::eelCompilationStarted, this, &EELEditor::onCompilerStarted);
+    connect(host, &IAudioService::eelCompilationFinished, this, &EELEditor::onCompilerFinished);
+    connect(host, &IAudioService::eelOutputReceived, this, &EELEditor::onConsoleOutputReceived);
+
+    // TODO
+    //QTimer *timer = new QTimer(this);
+    //connect(timer, SIGNAL(timeout()), host, SLOT(enumerateLiveprogVariables()));
+    //timer->start(200);
 
 }
 #endif
