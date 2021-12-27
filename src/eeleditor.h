@@ -13,6 +13,10 @@
 #include <DockAreaWidget.h>
 #include <DockWidget.h>
 
+#ifdef HAS_JDSP_DRIVER
+#include <IAudioService.h>
+#endif
+
 class ProjectView;
 class FindReplaceForm;
 class ConsoleOutput;
@@ -31,6 +35,9 @@ public:
     EELEditor(QWidget *parent = nullptr);
     ~EELEditor();
     void openNewScript(QString path);
+#ifdef HAS_JDSP_DRIVER
+    void attachHost(IAudioService* _host);
+#endif
 
 signals:
     void scriptSaved(QString path);
@@ -79,6 +86,10 @@ private:
     ads::CDockManager* DockManager;
     ads::CDockAreaWidget* StatusDockArea;
     ads::CDockWidget* TimelineDockWidget;
+
+#ifdef HAS_JDSP_DRIVER
+    IAudioService* host;
+#endif
 
     void changeSyntaxStyle(QString def);
 };

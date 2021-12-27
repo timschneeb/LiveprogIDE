@@ -1,8 +1,9 @@
 include(../3rdparty/QCodeEditor/QCodeEditor.pri)
+include(../3rdparty/docking-system/src/ads-plugin.pri)
+
 
 SOURCES += \
     $$PWD/eeleditor.cpp \
-    $$PWD/main.cpp \
     $$PWD/utils/FontUtils.cpp \
     $$PWD/utils/stringutils.cpp \
     $$PWD/model/completerdelegate.cpp \

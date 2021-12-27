@@ -164,6 +164,15 @@ void EELEditor::openNewScript(QString path){
     projectView->addFile(path);
 }
 
+#ifdef HAS_JDSP_DRIVER
+void EELEditor::attachHost(IAudioService *_host)
+{
+    host = _host;
+
+
+}
+#endif
+
 void EELEditor::onCompilerStarted(const QString &scriptName)
 {
     Q_UNUSED(scriptName)
