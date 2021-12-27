@@ -71,5 +71,6 @@
         <file>icons/undo.svg</file>
         <file>icons/warning.svg</file>
         <file>icons/NewFile_16x.svg</file>
+        <file>icons/DataPreview.svg</file>
     </qresource>
 </RCC>

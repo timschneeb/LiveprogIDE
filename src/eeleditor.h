@@ -12,6 +12,7 @@
 #include <DockManager.h>
 #include <DockAreaWidget.h>
 #include <DockWidget.h>
+#include <QTableView>
 
 #ifdef HAS_JDSP_DRIVER
 #include <IAudioService.h>
@@ -76,6 +77,7 @@ private:
     ProjectView* projectView;
     CodeOutline* codeOutline;
     ConsoleOutput* consoleOutput;
+    QTableView* variableView;
 
     CustomSymbolProvider* symbolProvider;
     EELHighlighter* highlighter;
@@ -90,6 +92,8 @@ private:
 #ifdef HAS_JDSP_DRIVER
     IAudioService* host;
 #endif
+
+    QTimer* variableWatchTimer;
 
     void changeSyntaxStyle(QString def);
 };

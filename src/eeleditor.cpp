@@ -23,6 +23,7 @@
 #include <QStackedWidget>
 #include <QLabel>
 #include <QPushButton>
+#include <QHeaderView>
 
 #include <DockAreaTitleBar.h>
 #include <DockAreaTabBar.h>
@@ -31,6 +32,8 @@
 
 #include <widgets/ActionButton.h>
 #include <widgets/EmptyView.h>
+
+#include <model/VariableItemModel.h>
 
 using namespace ads;
 
@@ -48,6 +51,17 @@ EELEditor::EELEditor(QWidget *parent)
     projectView = new ProjectView(this);
     codeOutline = new CodeOutline(this);
     consoleOutput = new ConsoleOutput(loadFallbackFont, this);
+
+    variableView = new QTableView(this);
+    variableView->setModel(new VariableItemModel(this));
+    variableView->setSelectionMode(QAbstractItemView::NoSelection);
+    variableView->setSortingEnabled(false);
+    variableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    variableView->verticalHeader()->setVisible(false);
+
+    variableWatchTimer = new QTimer(this);
+    variableWatchTimer->setInterval(200);
+    variableWatchTimer->setSingleShot(false);
 
     codeView = new QStackedWidget(this);
 
@@ -92,6 +106,26 @@ EELEditor::EELEditor(QWidget *parent)
     projectsDock->setMinimumSize(200,150);
     DockManager->addDockWidget(DockWidgetArea::BottomDockWidgetArea, projectsDock, leftArea);
     ui->menuView->addAction(projectsDock->toggleViewAction());
+
+#ifdef HAS_JDSP_DRIVER
+
+
+    auto* variableDock = new CDockWidget("Variable view");
+    variableDock->setWidget(variableView);
+    variableDock->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromDockWidget);
+    variableDock->resize(300, 150);
+    variableDock->setMinimumSize(200,150);
+    DockManager->addDockWidget(DockWidgetArea::RightDockWidgetArea, variableDock);
+    variableDock->toggleView(false);
+    auto* variableAction = variableDock->toggleViewAction();
+    variableAction->setIcon(QIcon(":/icons/DataPreview.svg"));
+    ui->toolBar->addAction(variableAction);
+    ui->menuView->addAction(variableAction);
+
+    connect(variableDock, &CDockWidget::viewToggled, variableWatchTimer, [this](bool state){
+        state ? variableWatchTimer->start() : variableWatchTimer->stop();
+    });
+#endif
 
     auto* consoleDock = new CDockWidget("Console output");
     consoleDock->setWidget(consoleOutput);
@@ -172,12 +206,8 @@ void EELEditor::attachHost(IAudioService *_host)
     connect(host, &IAudioService::eelCompilationStarted, this, &EELEditor::onCompilerStarted);
     connect(host, &IAudioService::eelCompilationFinished, this, &EELEditor::onCompilerFinished);
     connect(host, &IAudioService::eelOutputReceived, this, &EELEditor::onConsoleOutputReceived);
-
-    // TODO
-    //QTimer *timer = new QTimer(this);
-    //connect(timer, SIGNAL(timeout()), host, SLOT(enumerateLiveprogVariables()));
-    //timer->start(200);
-
+    connect(host, &IAudioService::eelVariablesEnumerated, static_cast<VariableItemModel*>(variableView->model()), &VariableItemModel::onLiveprogVariablesUpdated);
+    connect(variableWatchTimer, &QTimer::timeout, host, &IAudioService::enumerateLiveprogVariables);
 }
 #endif
 

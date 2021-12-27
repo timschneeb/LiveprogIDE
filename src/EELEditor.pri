@@ -4,6 +4,7 @@ include(../3rdparty/docking-system/src/ads-plugin.pri)
 
 SOURCES += \
     $$PWD/eeleditor.cpp \
+    $$PWD/model/VariableItemModel.cpp \
     $$PWD/utils/FontUtils.cpp \
     $$PWD/utils/stringutils.cpp \
     $$PWD/model/completerdelegate.cpp \
@@ -21,6 +22,7 @@ SOURCES += \
 
 HEADERS += \
     $$PWD/eeleditor.h \
+    $$PWD/model/VariableItemModel.h \
     $$PWD/model/abstractdefinition.h \
     $$PWD/utils/FontUtils.h \
     $$PWD/utils/stringutils.h \
