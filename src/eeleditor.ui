@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>803</width>
-     <height>20</height>
+     <height>19</height>
     </rect>
    </property>
    <property name="defaultUp">
@@ -207,6 +207,10 @@
    </property>
   </action>
   <action name="actionGo_to_line">
+   <property name="icon">
+    <iconset resource="editorresources.qrc">
+     <normaloff>:/icons/GoToCurrentLine_16x.svg</normaloff>:/icons/GoToCurrentLine_16x.svg</iconset>
+   </property>
    <property name="text">
     <string>Go to Line...</string>
    </property>
@@ -215,6 +219,10 @@
    </property>
   </action>
   <action name="actionJump_to_function">
+   <property name="icon">
+    <iconset resource="editorresources.qrc">
+     <normaloff>:/icons/GoToMethod_16x.svg</normaloff>:/icons/GoToMethod_16x.svg</iconset>
+   </property>
    <property name="text">
     <string>Jump to function...</string>
    </property>

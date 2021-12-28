@@ -72,5 +72,10 @@
         <file>icons/warning.svg</file>
         <file>icons/NewFile_16x.svg</file>
         <file>icons/DataPreview.svg</file>
+        <file>icons/Console_16x.svg</file>
+        <file>icons/GoToCurrentLine_16x.svg</file>
+        <file>icons/GoToMethod_16x.svg</file>
+        <file>icons/JSONDocumentOutline_16x.svg</file>
+        <file>icons/ListFolder_16x.svg</file>
     </qresource>
 </RCC>
