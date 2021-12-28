@@ -212,7 +212,10 @@
      <normaloff>:/icons/GoToCurrentLine_16x.svg</normaloff>:/icons/GoToCurrentLine_16x.svg</iconset>
    </property>
    <property name="text">
-    <string>Go to Line...</string>
+    <string>Go to line...</string>
+   </property>
+   <property name="toolTip">
+    <string>Go to line</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+L</string>
