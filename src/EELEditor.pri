@@ -13,6 +13,7 @@ SOURCES += \
     $$PWD/model/eelhighlighter.cpp \
     $$PWD/widgets/ActionButton.cpp \
     $$PWD/widgets/EmptyView.cpp \
+    $$PWD/widgets/VariableWatchWidget.cpp \
     $$PWD/widgets/codeeditor.cpp \
     $$PWD/widgets/codeoutline.cpp \
     $$PWD/widgets/consoleoutput.cpp \
@@ -36,6 +37,7 @@ HEADERS += \
     $$PWD/utils/templateextension.h \
     $$PWD/widgets/ActionButton.h \
     $$PWD/widgets/EmptyView.h \
+    $$PWD/widgets/VariableWatchWidget.h \
     $$PWD/widgets/codeeditor.h \
     $$PWD/widgets/codeoutline.h \
     $$PWD/widgets/consoleoutput.h \
@@ -47,6 +49,7 @@ HEADERS += \
 FORMS += \
     $$PWD/eeleditor.ui \
     $$PWD/widgets/EmptyView.ui \
+    $$PWD/widgets/VariableWatchWidget.ui \
     $$PWD/widgets/dialog/newfilewizard.ui \
     $$PWD/widgets/findreplaceform.ui
 

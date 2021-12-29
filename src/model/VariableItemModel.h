@@ -20,6 +20,8 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
+    EelVariable variableAtIndex(const QModelIndex &index) const;
+
 public slots:
 #ifdef HAS_JDSP_DRIVER
     void onLiveprogVariablesUpdated(const std::vector<EelVariable>& vars);

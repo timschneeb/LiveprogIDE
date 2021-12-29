@@ -12,7 +12,6 @@
 #include <DockManager.h>
 #include <DockAreaWidget.h>
 #include <DockWidget.h>
-#include <QTableView>
 
 #ifdef HAS_JDSP_DRIVER
 #include <IAudioService.h>
@@ -23,6 +22,7 @@ class FindReplaceForm;
 class ConsoleOutput;
 class QStackedWidget;
 class EmptyView;
+class VariableWatchWidget;
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class EELEditor; }
@@ -63,6 +63,9 @@ private slots:
     void onCurrentFileUpdated(CodeContainer* prev, CodeContainer* code);
     void onBackendRefreshRequired();
 
+protected:
+    void closeEvent(QCloseEvent* ev) override;
+
 private:
     Ui::EELEditor *ui;
 
@@ -77,7 +80,7 @@ private:
     ProjectView* projectView;
     CodeOutline* codeOutline;
     ConsoleOutput* consoleOutput;
-    QTableView* variableView;
+    VariableWatchWidget* variableView;
 
     CustomSymbolProvider* symbolProvider;
     EELHighlighter* highlighter;
@@ -90,10 +93,8 @@ private:
     ads::CDockWidget* TimelineDockWidget;
 
 #ifdef HAS_JDSP_DRIVER
-    IAudioService* host;
+    IAudioService* audioService = nullptr;
 #endif
-
-    QTimer* variableWatchTimer;
 
     void changeSyntaxStyle(QString def);
 };

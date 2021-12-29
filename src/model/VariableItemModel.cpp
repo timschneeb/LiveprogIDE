@@ -59,11 +59,45 @@ QVariant VariableItemModel::headerData(int section, Qt::Orientation orientation,
     }
 }
 
+EelVariable VariableItemModel::variableAtIndex(const QModelIndex &index) const
+{
+    if((ulong)index.row() > variables.size())
+        return EelVariable();
+
+    return variables[index.row()];
+}
+
 #ifdef HAS_JDSP_DRIVER
 void VariableItemModel::onLiveprogVariablesUpdated(const std::vector<EelVariable> &vars)
 {
-    beginResetModel();
-    variables = vars;
-    endResetModel();
+    // Fast check
+    bool needsReset = vars.size() != variables.size();
+    // Full check
+    if(!needsReset)
+    {
+        for(size_t i = 0; i < vars.size(); i++)
+        {
+            if(vars[i].name != variables[i].name)
+            {
+                needsReset = true;
+                break;
+            }
+        }
+    }
+
+    if(needsReset)
+    {
+        beginResetModel();
+        variables = vars;
+        endResetModel();
+    }
+    else
+    {
+        for(size_t i = 0; i < vars.size(); i++)
+        {
+            variables[i].value = vars[i].value;
+        }
+        emit dataChanged(this->index(0,1), this->index(rowCount(),1));
+    }
 }
 #endif

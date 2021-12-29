@@ -77,5 +77,6 @@
         <file>icons/GoToMethod_16x.svg</file>
         <file>icons/JSONDocumentOutline_16x.svg</file>
         <file>icons/ListFolder_16x.svg</file>
+        <file>icons/RunPause_16x.svg</file>
     </qresource>
 </RCC>

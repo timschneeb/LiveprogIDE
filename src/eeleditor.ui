@@ -115,6 +115,7 @@
    <addaction name="actionRedo"/>
    <addaction name="separator"/>
    <addaction name="actionRun_code"/>
+   <addaction name="actionFreeze"/>
   </widget>
   <action name="actionOpen_file">
    <property name="icon">
@@ -302,6 +303,24 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionFreeze">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="editorresources.qrc">
+     <normaloff>:/icons/RunPause_16x.svg</normaloff>:/icons/RunPause_16x.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Freeze</string>
+   </property>
+   <property name="toolTip">
+    <string>Freeze</string>
+   </property>
+   <property name="shortcut">
+    <string>F6</string>
    </property>
   </action>
  </widget>

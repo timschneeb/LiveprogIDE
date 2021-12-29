@@ -32,6 +32,7 @@
 
 #include <widgets/ActionButton.h>
 #include <widgets/EmptyView.h>
+#include <widgets/VariableWatchWidget.h>
 
 #include <model/VariableItemModel.h>
 
@@ -56,16 +57,7 @@ EELEditor::EELEditor(QWidget *parent)
     codeOutline = new CodeOutline(this);
     consoleOutput = new ConsoleOutput(loadFallbackFont, this);
 
-    variableView = new QTableView(this);
-    variableView->setModel(new VariableItemModel(this));
-    variableView->setSelectionMode(QAbstractItemView::NoSelection);
-    variableView->setSortingEnabled(false);
-    variableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    variableView->verticalHeader()->setVisible(false);
-
-    variableWatchTimer = new QTimer(this);
-    variableWatchTimer->setInterval(200);
-    variableWatchTimer->setSingleShot(false);
+    variableView = new VariableWatchWidget(this);
 
     codeView = new QStackedWidget(this);
 
@@ -97,7 +89,7 @@ EELEditor::EELEditor(QWidget *parent)
     projectsDock->setWidget(projectView);
     projectsDock->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromDockWidget);
     projectsDock->resize(250, 50);
-    projectsDock->setMinimumSize(200,50);
+    projectsDock->setMinimumSize(200,5);
     projectsDock->setGeometry(0,0,0,400);
     SET_DOCK_ICON(projectsDock,":/icons/ListFolder_16x.svg")
     auto* leftArea = DockManager->addDockWidget(DockWidgetArea::LeftDockWidgetArea, projectsDock);
@@ -107,7 +99,7 @@ EELEditor::EELEditor(QWidget *parent)
     outlineDock->setWidget(codeOutline);
     outlineDock->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromDockWidget);
     outlineDock->resize(250, 150);
-    outlineDock->setMinimumSize(200,150);
+    outlineDock->setMinimumSize(200,5);
     SET_DOCK_ICON(outlineDock,":/icons/JSONDocumentOutline_16x.svg")
     DockManager->addDockWidget(DockWidgetArea::BottomDockWidgetArea, outlineDock, leftArea);
     ui->menuView->addAction(outlineDock->toggleViewAction());
@@ -117,23 +109,21 @@ EELEditor::EELEditor(QWidget *parent)
     variableDock->setWidget(variableView);
     variableDock->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromDockWidget);
     variableDock->resize(300, 150);
-    variableDock->setMinimumSize(200,150);
+    variableDock->setMinimumSize(200,5);
     DockManager->addDockWidget(DockWidgetArea::RightDockWidgetArea, variableDock);
     variableDock->toggleView(false);
     SET_DOCK_ICON(variableDock,":/icons/DataPreview.svg")
     ui->toolBar->addAction(variableDock->toggleViewAction());
     ui->menuView->addAction(variableDock->toggleViewAction());
 
-    connect(variableDock, &CDockWidget::viewToggled, variableWatchTimer, [this](bool state){
-        state ? variableWatchTimer->start() : variableWatchTimer->stop();
-    });
+    connect(variableDock, &CDockWidget::viewToggled, variableView, &VariableWatchWidget::setWatching);
 #endif
 
     auto* consoleDock = new CDockWidget("Console output");
     consoleDock->setWidget(consoleOutput);
     consoleDock->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromDockWidget);
     consoleDock->resize(250, 150);
-    consoleDock->setMinimumSize(200,150);
+    consoleDock->setMinimumSize(50,150);
     SET_DOCK_ICON(consoleDock,":/icons/Console_16x.svg")
     DockManager->addDockWidget(DockWidgetArea::BottomDockWidgetArea, consoleDock);
     ui->menuView->addAction(consoleDock->toggleViewAction());
@@ -204,13 +194,14 @@ void EELEditor::openNewScript(QString path){
 #ifdef HAS_JDSP_DRIVER
 void EELEditor::attachHost(IAudioService *_host)
 {
-    host = _host;
+    audioService = _host;
 
-    connect(host, &IAudioService::eelCompilationStarted, this, &EELEditor::onCompilerStarted);
-    connect(host, &IAudioService::eelCompilationFinished, this, &EELEditor::onCompilerFinished);
-    connect(host, &IAudioService::eelOutputReceived, this, &EELEditor::onConsoleOutputReceived);
-    connect(host, &IAudioService::eelVariablesEnumerated, static_cast<VariableItemModel*>(variableView->model()), &VariableItemModel::onLiveprogVariablesUpdated);
-    connect(variableWatchTimer, &QTimer::timeout, host, &IAudioService::enumerateLiveprogVariables);
+    connect(audioService, &IAudioService::eelCompilationStarted, this, &EELEditor::onCompilerStarted);
+    connect(audioService, &IAudioService::eelCompilationFinished, this, &EELEditor::onCompilerFinished);
+    connect(audioService, &IAudioService::eelOutputReceived, this, &EELEditor::onConsoleOutputReceived);
+    connect(ui->actionFreeze, &QAction::toggled, [this](bool state){ audioService->host()->freezeLiveprogExecution(state); });
+
+    this->variableView->attachHost(audioService);
 }
 #endif
 
@@ -354,6 +345,15 @@ void EELEditor::onBackendRefreshRequired()
 
     highlighter->setErrorLine(-1);
     highlighter->rehighlight();
+}
+
+void EELEditor::closeEvent(QCloseEvent *ev)
+{
+    /* Unfreeze on close */
+    ui->actionFreeze->setChecked(false);
+    audioService->host()->freezeLiveprogExecution(false);
+
+    QMainWindow::closeEvent(ev);
 }
 
 void EELEditor::onIsCodeLoadedChanged(bool isLoaded)
