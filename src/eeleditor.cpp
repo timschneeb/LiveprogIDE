@@ -108,7 +108,7 @@ EELEditor::EELEditor(QWidget *parent)
     auto* variableDock = new CDockWidget("Variable view");
     variableDock->setWidget(variableView);
     variableDock->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromDockWidget);
-    variableDock->resize(300, 150);
+    variableDock->resize(400, 150);
     variableDock->setMinimumSize(200,5);
     DockManager->addDockWidget(DockWidgetArea::RightDockWidgetArea, variableDock);
     variableDock->toggleView(false);
