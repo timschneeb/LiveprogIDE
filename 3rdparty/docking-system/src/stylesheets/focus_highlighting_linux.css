@@ -11,7 +11,6 @@ ads--CDockContainerWidget ads--CDockSplitter::handle {
 
 ads--CDockAreaWidget {
         background: palette(window);
-        border: 1px solid white;
 }
 
 ads--CDockAreaWidget #tabsMenuButton::menu-indicator {

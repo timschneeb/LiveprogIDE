@@ -6,8 +6,7 @@ ads--CDockContainerWidget {
 }
 
 ads--CDockAreaWidget {
-	background: palette(window);
-	border: 1px solid white;
+        background: palette(window);
 }
 
 ads--CDockWidgetTab {
