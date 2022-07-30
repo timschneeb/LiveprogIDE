@@ -8,3 +8,4 @@ Example:
 ```bash
 qmake EELEditor.pro "CONFIG += COMPILE_STANDALONE"
 ```
+![Screenshot](screenshot.png)
