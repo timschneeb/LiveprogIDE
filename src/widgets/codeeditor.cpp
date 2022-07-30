@@ -57,8 +57,8 @@ int CodeEditor::getCurrentLine(){
 }
 
 QList<FunctionDefinition> CodeEditor::findFunctions(){
-    QRegularExpression basicFunction(R"((?<keyword>(?:procedure )|(?:function ))(?<name>\w+)\s?)");
-    QRegularExpression function(R"((?<keyword>(?:procedure )|(?:function ))(?<name>\w+)\s?\((?<param>(?:\w+?\s?)+)?\)(?:\s?)*(?:(?:instance\s*?\(\s*?(?<instance>(?:\w+?\s*?)+)\).*?|local\s*?\(\s*?(?<local>(?:\w+?\s*?)+)\).*?)(?:\s?)*){0,2}(?<below>(?:[\s\S](?!(?:procedure )|(?:function )\w+\s?))+))");
+    QRegularExpression basicFunction(R"(function\s*(?<name>\w+)\s?)");
+    QRegularExpression function(R"(function\s*(?<name>\w+)\s?\((?<param>(?:\w+?\s*,?\s*)+)?\)(?:\s?)*(?:(?:instance\s*?\(\s*?(?<instance>(?:\w+?\s*?)+)\).*?|local\s*?\(\s*?(?<local>(?:\w+?\s*?)+)\).*?)(?:\s?)*){0,2}(?<below>(?:[\s\S](?!(?:procedure )|(?:function )\w+\s?))+))");
     QList<FunctionDefinition> map;
     int linenum = 1;
     QString previousLines;
@@ -88,7 +88,7 @@ QList<FunctionDefinition> CodeEditor::findFunctions(){
                     def.endOfFunction = -1;
                 else
                     def.endOfFunction = linenum + endOfFunc;
-                def.isProcedure = match.captured("keyword").contains("procedure");
+                def.isProcedure = false;
 
                 def.parameters.removeAll(QString(""));
                 def.instanceVariables.removeAll(QString(""));

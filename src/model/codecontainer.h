@@ -1,7 +1,9 @@
 #ifndef CODECONTAINER_H
 #define CODECONTAINER_H
 
+#include "qdebug.h"
 #include <QFile>
+#include <QMessageBox>
 #include <QString>
 #include <QTextStream>
 
@@ -20,7 +22,7 @@ public:
             return;
         code = fl.readAll();
     }
-    void save(QString cpath = ""){
+    void save(QString cpath = "", QWidget* parent = nullptr){
         if(cpath.isEmpty())
             cpath = path;
 
@@ -29,7 +31,13 @@ public:
         {
             QTextStream stream(&file);
             stream << code;
-            file.close();;
+            file.close();
+        }
+        else {
+            if(parent != nullptr)
+                QMessageBox::warning(parent, "File error", "Failed to save script. Reason: " + file.errorString());
+            qWarning().noquote().nospace() << "Failed to save eel script to " << cpath;
+            qWarning().noquote().nospace() << "Error code: " << file.error() << "; reason: " << file.errorString();
         }
     };
 

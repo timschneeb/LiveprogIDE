@@ -423,7 +423,7 @@ void EELEditor::openProject()
 void EELEditor::saveProject()
 {
     projectView->getCurrentFile()->code = codeEdit->toPlainText();
-    projectView->getCurrentFile()->save();
+    projectView->getCurrentFile()->save("", this);
     emit scriptSaved(projectView->getCurrentFile()->path);
 }
 
@@ -438,7 +438,7 @@ void EELEditor::saveProjectAs()
     }
 
     projectView->getCurrentFile()->code = codeEdit->toPlainText();
-    projectView->getCurrentFile()->save(fileName);
+    projectView->getCurrentFile()->save(fileName, this);
     emit scriptSaved(fileName);
 }
 
