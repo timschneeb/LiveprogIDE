@@ -85,7 +85,7 @@
     </size>
    </property>
    <property name="windowTitle">
-    <string>toolBar</string>
+    <string notr="true">toolBar</string>
    </property>
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
