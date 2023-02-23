@@ -66,13 +66,13 @@ void VariableWatchWidget::onVariableClicked(const QModelIndex &index)
 
     if(variable.isString)
     {
-        QMessageBox::critical(this, "Error", "This variable is a string. Currently only numerical value types can be modified.");
+        QMessageBox::critical(this, tr("Error"), tr("This variable is a string. Currently only numerical value types can be modified."));
         return;
     }
 
     bool ok = false;
-    double value = QInputDialog::getDouble(this, "Manipulate variable",
-                            QString("Enter a new value for variable '%1':").arg(variable.name.c_str()), std::get<float>(variable.value), FLT_MIN, FLT_MAX, 7, &ok);
+    double value = QInputDialog::getDouble(this, tr("Manipulate variable"),
+                            tr("Enter a new value for variable '%1':").arg(variable.name.c_str()), std::get<float>(variable.value), FLT_MIN, FLT_MAX, 7, &ok);
     if(!ok)
     {
         return;
@@ -80,6 +80,6 @@ void VariableWatchWidget::onVariableClicked(const QModelIndex &index)
 
     if(!audioService->host()->manipulateEelVariable(variable.name.c_str(), value))
     {
-        QMessageBox::critical(this, "Error", QString("Failed to manipulate variable '%1'. Either it does not exist anymore, or it cannot be changed.").arg(variable.name.c_str()));
+        QMessageBox::critical(this, tr("Error"), tr("Failed to manipulate variable '%1'. Either it does not exist anymore, or it cannot be changed.").arg(variable.name.c_str()));
     }
 }

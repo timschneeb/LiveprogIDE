@@ -37,20 +37,20 @@ void NewFileWizard::accept()
 {
     if(!QDir(ui->directory->text()).exists())
     {
-        QMessageBox::critical(this, "Error", "Workspace directory does not exist");
+        QMessageBox::critical(this, tr("Error"), tr("Workspace directory does not exist"));
         return;
     }
 
     if(QFile(filePath()).exists())
     {
-        QMessageBox::critical(this, "Error", "A file with the same name already exists at this loction");
+        QMessageBox::critical(this, tr("Error"), tr("A file with the same name already exists at this loction"));
         return;
     }
 
     QRegularExpression rx(R"(^(?!(?:COM[0-9]|CON|LPT[0-9]|NUL|PRN|AUX|com[0-9]|con|lpt[0-9]|nul|prn|aux)|\s|[\.]{2,})[^\\\/:*"?<>|]{1,254}(?<![\s\.])$)");
     if(!rx.match(ui->filename->text()).hasMatch() || ui->filename->text().length() <= 0)
     {
-        QMessageBox::critical(this, "Error", "File name is empty or contains illegal characters");
+        QMessageBox::critical(this, tr("Error"), tr("File name is empty or contains illegal characters"));
         return;
     }
 

@@ -6,11 +6,11 @@ CodeOutline::CodeOutline(QWidget *parent)
     this->setHeaderHidden(true);
 
     twAnnotation = new QTreeWidgetItem(this);
-    twAnnotation->setText(0,"Annotations");
+    twAnnotation->setText(0,tr("Annotations"));
     twAnnotation->setExpanded(true);
     addTopLevelItem(twAnnotation);
     twFunctions = new QTreeWidgetItem(this);
-    twFunctions->setText(0,"Functions");
+    twFunctions->setText(0,tr("Functions"));
     twFunctions->setExpanded(true);
     addTopLevelItem(twFunctions);
 

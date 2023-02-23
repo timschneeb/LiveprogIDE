@@ -85,7 +85,7 @@ EELEditor::EELEditor(QWidget *parent)
     CentralDockWidget->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromContent);
     CentralDockArea->setAllowedAreas(DockWidgetArea::OuterDockAreas);
 
-    CDockWidget* projectsDock = new CDockWidget("Loaded projects");
+    CDockWidget* projectsDock = new CDockWidget(tr("Loaded projects"));
     projectsDock->setWidget(projectView);
     projectsDock->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromDockWidget);
     projectsDock->resize(250, 50);
@@ -95,7 +95,7 @@ EELEditor::EELEditor(QWidget *parent)
     auto* leftArea = DockManager->addDockWidget(DockWidgetArea::LeftDockWidgetArea, projectsDock);
     ui->menuView->addAction(projectsDock->toggleViewAction());
 
-    auto* outlineDock = new CDockWidget("Code outline");
+    auto* outlineDock = new CDockWidget(tr("Code outline"));
     outlineDock->setWidget(codeOutline);
     outlineDock->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromDockWidget);
     outlineDock->resize(250, 150);
@@ -105,7 +105,7 @@ EELEditor::EELEditor(QWidget *parent)
     ui->menuView->addAction(outlineDock->toggleViewAction());
 
 #ifdef HAS_JDSP_DRIVER
-    auto* variableDock = new CDockWidget("Variable view");
+    auto* variableDock = new CDockWidget(tr("Variable view"));
     variableDock->setWidget(variableView);
     variableDock->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromDockWidget);
     variableDock->resize(400, 150);
@@ -119,7 +119,7 @@ EELEditor::EELEditor(QWidget *parent)
     connect(variableDock, &CDockWidget::viewToggled, variableView, &VariableWatchWidget::setWatching);
 #endif
 
-    auto* consoleDock = new CDockWidget("Console output");
+    auto* consoleDock = new CDockWidget(tr("Console output"));
     consoleDock->setWidget(consoleOutput);
     consoleDock->setMinimumSizeHintMode(CDockWidget::MinimumSizeHintFromDockWidget);
     consoleDock->resize(250, 150);
@@ -209,7 +209,7 @@ void EELEditor::onCompilerStarted(const QString &scriptName)
 {
     Q_UNUSED(scriptName)
     consoleOutput->clear();
-    consoleOutput->printLowPriorityLine(QString("'%1' started compiling at %2").arg(QFileInfo(scriptName).fileName()).arg(QDateTime::currentDateTime().toString("hh:mm:ss.zzz")));
+    consoleOutput->printLowPriorityLine(tr("'%1' started compiling at %2").arg(QFileInfo(scriptName).fileName()).arg(QDateTime::currentDateTime().toString("hh:mm:ss.zzz")));
 }
 
 void EELEditor::onCompilerFinished(int ret, const QString& retMsg, const QString& msg, const QString& scriptName, float initMs)
@@ -292,11 +292,11 @@ void EELEditor::onCompilerFinished(int ret, const QString& retMsg, const QString
             consoleOutput->printErrorLine(msg);
         }
 
-        consoleOutput->printLowPriorityLine(QString("<br>Compilation stopped at %2").arg(QDateTime::currentDateTime().toString("hh:mm:ss.zzz")));
+        consoleOutput->printLowPriorityLine(tr("<br>Compilation stopped at %2").arg(QDateTime::currentDateTime().toString("hh:mm:ss.zzz")));
     }
     else
     {
-        consoleOutput->printLowPriorityLine(QString("Script initialization took %1ms").arg(initMs));
+        consoleOutput->printLowPriorityLine(tr("Script initialization took %1ms").arg(initMs));
     }
 
     auto* cc = projectView->getCurrentFile();
@@ -305,7 +305,7 @@ void EELEditor::onCompilerFinished(int ret, const QString& retMsg, const QString
         return;
     }
 
-    // Ddon't highlight if different script is opened in editor
+    // Don't highlight if different script is opened in editor
     if(QFileInfo(scriptName) != QFileInfo(cc->path))
         return;
 
@@ -383,7 +383,7 @@ void EELEditor::newProject()
 
         if(!file.isOpen())
         {
-            QMessageBox::critical(this, "IO error", "Cannot write file");
+            QMessageBox::critical(this, tr("Error"), tr("Cannot write file"));
             return;
         }
 
@@ -429,8 +429,7 @@ void EELEditor::saveProject()
 
 void EELEditor::saveProjectAs()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, "Save as",
-                                        projectView->getCurrentFile()->path, "EEL2 script (*.eel)");
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save as"), projectView->getCurrentFile()->path, "EEL2 script (*.eel)");
 
     if (fileName.isEmpty())
     {
@@ -447,7 +446,7 @@ void EELEditor::runCode()
     CodeContainer* cc = projectView->getCurrentFile();
     if(cc == nullptr)
     {
-        QMessageBox::critical(this, "Cannot execute", "No script file opened. Please open one first and try again.");
+        QMessageBox::critical(this, tr("Cannot execute"), tr("No script file opened. Please open one first and try again."));
         return;
     }
 
@@ -458,8 +457,8 @@ void EELEditor::runCode()
 void EELEditor::goToLine()
 {
     bool ok = true;
-    int line = QInputDialog::getInt(this, "Go to line...",
-                         "Enter line number:", codeEdit->getCurrentLine(), 1, 2147483647, 1, &ok);
+    int line = QInputDialog::getInt(this, tr("Go to line..."),
+                         tr("Enter line number:"), codeEdit->getCurrentLine(), 1, 2147483647, 1, &ok);
     if (ok && line >= 0)
     {
         codeEdit->goToLine(line);
@@ -469,8 +468,8 @@ void EELEditor::goToLine()
 void EELEditor::jumpToFunction()
 {
     bool ok = true;
-    QString name = QInputDialog::getText(this, "Jump to function...",
-                             "Enter function name:", QLineEdit::Normal, "", &ok);
+    QString name = QInputDialog::getText(this, tr("Jump to function..."),
+                             tr("Enter function name:") , QLineEdit::Normal, "", &ok);
     if (ok && !name.isEmpty())
     {
         codeOutline->goToFunction(name);

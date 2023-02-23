@@ -53,8 +53,8 @@ QVariant VariableItemModel::headerData(int section, Qt::Orientation orientation,
 {
     if (orientation != Qt::Horizontal || role != Qt::DisplayRole) return {};
     switch (section) {
-    case 0: return "Parameter";
-    case 1: return "Value";
+    case 0: return tr("Parameter");
+    case 1: return tr("Value");
     default: return {};
     }
 }

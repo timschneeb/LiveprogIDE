@@ -23,20 +23,20 @@ ConsoleOutput::ConsoleOutput(bool loadFallbackFont, QWidget* parent) : QTextBrow
 
     menu = new QMenu(this);
 
-    auto autoScrollAction = new QAction("Auto-scroll", this);
+    auto autoScrollAction = new QAction(tr("Auto-scroll"), this);
     autoScrollAction->setCheckable(true);
     autoScrollAction->setChecked(true);
     connect(autoScrollAction, &QAction::toggled, this, &ConsoleOutput::setAutoScroll);
     menu->addAction(autoScrollAction);
-    auto copyAction = new QAction("Copy selection", this);
+    auto copyAction = new QAction(tr("Copy selection"), this);
     connect(copyAction, &QAction::triggered, this, &ConsoleOutput::copy);
     menu->addAction(copyAction);
-    auto copyAllAction = new QAction("Copy all", this);
+    auto copyAllAction = new QAction(tr("Copy all"), this);
     connect(copyAllAction, &QAction::triggered, this, [this]{
         qApp->clipboard()->setText(this->toPlainText(), QClipboard::Clipboard);
     });
     menu->addAction(copyAllAction);
-    auto clearAction = new QAction("Clear", this);
+    auto clearAction = new QAction(tr("Clear"), this);
     connect(clearAction, &QAction::triggered, this, &ConsoleOutput::clear);
     menu->addAction(clearAction);
 
