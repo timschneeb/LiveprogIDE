@@ -12,8 +12,8 @@ CodeEditor::CodeEditor(QWidget* parent) :
     refreshTick = new QTimer(this);
     connect(refreshTick, &QTimer::timeout, this, &CodeEditor::fireRefreshSignal);
 
-    connect(this,&QCodeEditor::cursorPositionChanged,[=]{refreshCursorSignalQueued = true;});
-    connect(document(),&QTextDocument::contentsChanged,this,[=]{refreshSignalQueued = true;});
+    connect(this,&QCodeEditor::cursorPositionChanged,this,[this]{refreshCursorSignalQueued = true;});
+    connect(document(),&QTextDocument::contentsChanged,this,[this]{refreshSignalQueued = true;});
 }
 
 void CodeEditor::fireRefreshSignal(){
