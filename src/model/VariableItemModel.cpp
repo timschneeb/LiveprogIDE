@@ -59,6 +59,7 @@ QVariant VariableItemModel::headerData(int section, Qt::Orientation orientation,
     }
 }
 
+#ifdef HAS_JDSP_DRIVER
 EelVariable VariableItemModel::variableAtIndex(const QModelIndex &index) const
 {
     if((ulong)index.row() > variables.size())
@@ -67,7 +68,7 @@ EelVariable VariableItemModel::variableAtIndex(const QModelIndex &index) const
     return variables[index.row()];
 }
 
-#ifdef HAS_JDSP_DRIVER
+
 void VariableItemModel::onLiveprogVariablesUpdated(const std::vector<EelVariable> &vars)
 {
     // Fast check

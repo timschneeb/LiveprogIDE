@@ -20,7 +20,9 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
+#ifdef HAS_JDSP_DRIVER
     EelVariable variableAtIndex(const QModelIndex &index) const;
+#endif
 
 public slots:
 #ifdef HAS_JDSP_DRIVER

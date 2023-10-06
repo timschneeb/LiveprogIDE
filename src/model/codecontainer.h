@@ -3,7 +3,9 @@
 
 #include "qdebug.h"
 #include <QFile>
+#ifndef HEADLESS
 #include <QMessageBox>
+#endif
 #include <QString>
 #include <QTextStream>
 
@@ -34,8 +36,10 @@ public:
             file.close();
         }
         else {
+#ifndef HEADLESS
             if(parent != nullptr)
                 QMessageBox::warning(parent, "File error", "Failed to save script. Reason: " + file.errorString());
+#endif
             qWarning().noquote().nospace() << "Failed to save eel script to " << cpath;
             qWarning().noquote().nospace() << "Error code: " << file.error() << "; reason: " << file.errorString();
         }
