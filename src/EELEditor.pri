@@ -8,6 +8,7 @@
         $$PWD/model/customsymbolprovider.cpp \
         $$PWD/model/eelcompleter.cpp \
         $$PWD/model/eelhighlighter.cpp \
+        $$PWD/utils/FontUtils.cpp \
         $$PWD/widgets/ActionButton.cpp \
         $$PWD/widgets/EmptyView.cpp \
         $$PWD/widgets/VariableWatchWidget.cpp \
@@ -24,6 +25,7 @@
         $$PWD/model/customsymbolprovider.h \
         $$PWD/model/eelcompleter.h \
         $$PWD/model/eelhighlighter.h \
+        $$PWD/utils/FontUtils.h \
         $$PWD/widgets/ActionButton.h \
         $$PWD/widgets/EmptyView.h \
         $$PWD/widgets/VariableWatchWidget.h \
@@ -45,13 +47,11 @@
 
 SOURCES += \
     $$PWD/model/VariableItemModel.cpp \
-    $$PWD/utils/FontUtils.cpp \
     $$PWD/utils/stringutils.cpp
 
 HEADERS += \
     $$PWD/model/VariableItemModel.h \
     $$PWD/model/abstractdefinition.h \
-    $$PWD/utils/FontUtils.h \
     $$PWD/utils/stringutils.h \
     $$PWD/model/annotationdefinition.h \
     $$PWD/model/codecontainer.h \
