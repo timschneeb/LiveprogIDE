@@ -66,7 +66,6 @@ EELEditor::EELEditor(QWidget *parent)
     codeWidget = new QWidget(this);
     auto* codeLayout = new QVBoxLayout(codeWidget);
     codeLayout->setContentsMargins(0, 0, 0, 0);
-    codeLayout->setMargin(0);
     codeLayout->addWidget(codeEdit);
     codeLayout->addWidget(findReplaceForm);
 

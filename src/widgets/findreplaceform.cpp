@@ -5,7 +5,7 @@
 
 #include <QtGui>
 #include <QTextEdit>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QSettings>
 #include <QToolTip>
 
@@ -127,8 +127,8 @@ void FindReplaceForm::find(bool next) {
         flags |= QTextDocument::FindWholeWords;
 
     if (ui->regexCheckBox->isChecked()) {
-        QRegExp reg(toSearch,
-                    (ui->caseCheckBox->isChecked() ? Qt::CaseSensitive : Qt::CaseInsensitive));
+        QRegularExpression reg(toSearch,
+                               (ui->caseCheckBox->isChecked() ? QRegularExpression::NoPatternOption : QRegularExpression::PatternOption::CaseInsensitiveOption));
 
         qDebug() << "searching for regexp: " << reg.pattern();
 

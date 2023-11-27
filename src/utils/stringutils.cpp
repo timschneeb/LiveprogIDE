@@ -34,8 +34,8 @@ int StringUtils::countLinesToClosingBracket(QString input, QChar open, QChar clo
         }
     }
 
-    input.remove(QRegExp(R"(/\*[\s\S]+\*/)"));
-    input.remove(QRegExp(R"(//[^\n]*)"));
+    input.remove(QRegularExpression(R"(/\*[\s\S]+\*/)"));
+    input.remove(QRegularExpression(R"(//[^\n]*)"));
     int linenum = 0;
     int openedBrackets = 0;
     bool bracketFound = false;
