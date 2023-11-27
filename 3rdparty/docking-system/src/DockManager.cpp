@@ -585,7 +585,7 @@ bool CDockManager::eventFilter(QObject *obj, QEvent *e)
 		}
 		if (!window()->isMinimized())
 		{
-			QApplication::setActiveWindow(window());
+            window()->activateWindow();
 		}
 	}
 	return Super::eventFilter(obj, e);
