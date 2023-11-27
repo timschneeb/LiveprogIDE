@@ -88,8 +88,9 @@ void FindReplaceForm::validateRegExp(const QString &text) {
         return; // nothing to validate
     }
 
-    QRegExp reg(text,
-                (ui->caseCheckBox->isChecked() ? Qt::CaseSensitive : Qt::CaseInsensitive));
+    QRegularExpression reg(text,
+                           (ui->caseCheckBox->isChecked() ? QRegularExpression::NoPatternOption : QRegularExpression::PatternOption::CaseInsensitiveOption));
+
 
     if (reg.isValid()) {
         showError("");
